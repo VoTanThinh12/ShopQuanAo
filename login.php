@@ -5,7 +5,15 @@ License: Creative Commons Attribution 3.0 Unported
 License URL: http://creativecommons.org/licenses/by/3.0/
 -->
 <?php
+if (session_status() == PHP_SESSION_NONE) session_start();
 require 'db.php';
+$user_id = $_SESSION['user_id'] ?? 0;
+$cart_items = [];
+if ($user_id) {
+    $stmt = $pdo->prepare('SELECT * FROM cart WHERE user_id = ?');
+    $stmt->execute([$user_id]);
+    $cart_items = $stmt->fetchAll();
+}
 $errors = [];
 $email = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -86,14 +94,14 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
 		<div class="container">
 		<div class="col-sm-5 col-md-offset-2  header-login">
 					<ul >
-						<?php if (isset($_SESSION['user_id'])): ?>
+						<?php if (!empty($_SESSION['user_id']) && !empty($_SESSION['user_name'])): ?>
 							<li><a href="#" style="color:#fff; text-decoration:none;">Xin chào, <?php echo htmlspecialchars($_SESSION['user_name']); ?></a></li>
 							<li><a href="logout.php">Logout</a></li>
-							<li><a href="checkout.html">Checkout</a></li>
+							<li><a href="checkout.php">Checkout</a></li>
 						<?php else: ?>
 							<li><a href="login.php">Login</a></li>
 							<li><a href="register.php">Register</a></li>
-							<li><a href="checkout.html">Checkout</a></li>
+							<li><a href="checkout.php">Checkout</a></li>
 						<?php endif; ?>
 					</ul>
 				</div>

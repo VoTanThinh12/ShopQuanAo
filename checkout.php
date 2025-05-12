@@ -1,15 +1,57 @@
-<!--A Design by W3layouts 
-Author: W3layout
-Author URL: http://w3layouts.com
-License: Creative Commons Attribution 3.0 Unported
-License URL: http://creativecommons.org/licenses/by/3.0/
--->
+<?php
+    if (session_status() == PHP_SESSION_NONE) session_start();
+    require_once 'cart_total.php';
+    require 'db.php';
+    $user_id = $_SESSION['user_id'] ?? 0;
+    $cart_items = [];
+    if ($user_id) {
+        $stmt = $pdo->prepare('SELECT * FROM cart WHERE user_id = ?');
+        $stmt->execute([$user_id]);
+        $cart_items = $stmt->fetchAll();
+    }
+    
+    // Tính tổng tiền
+    $total_price = 0;
+    foreach ($cart_items as $item) {
+        $total_price += $item['price'] * $item['quantity'];
+    }
+    
+    // Xử lý nút Empty Cart (xóa giỏ hàng, không thanh toán)
+    if (isset($_POST['empty_cart']) && !empty($_SESSION['user_id'])) {
+        $stmt = $pdo->prepare('DELETE FROM cart WHERE user_id = ?');
+        $stmt->execute([$_SESSION['user_id']]);
+        header("Location: " . $_SERVER['REQUEST_URI']);
+        exit;
+    }
+    
+    // Xử lý khi submit form thanh toán
+    if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+        $card_number = $_POST['card_number'];
+        $expiry_date = $_POST['expiry_date'];
+        $cvv = $_POST['cvv'];
+        
+        // Giả lập trạng thái thanh toán (thực tế nên tích hợp cổng thanh toán)
+        $payment_status = 'paid';
+        
+        // Lưu đơn hàng vào database
+        if ($payment_status == 'paid') {
+            $stmt = $pdo->prepare("INSERT INTO orders (user_id, total_price, payment_status, payment_method) VALUES (?, ?, ?, ?)");
+            $stmt->execute([$user_id, $total_price, $payment_status, 'Credit Card']);
+            
+            // Chuyển hướng sang trang xác nhận đơn hàng
+            header("Location: order_confirmation.php");
+            exit;
+        } else {
+            $error_message = "Thanh toán thất bại. Vui lòng thử lại.";
+        }
+    }
+    ?>
 <!DOCTYPE html>
 <html>
   <head>
     <title>
       Shopin A Ecommerce Category Flat Bootstrap Responsive Website Template |
-      Wishlist :: w3layouts
+      Checkout :: w3layouts
     </title>
     <link
       href="css/bootstrap.css"
@@ -89,9 +131,15 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
         <div class="container">
           <div class="col-sm-5 col-md-offset-2 header-login">
             <ul>
-              <li><a href="login.php">Login</a></li>
-              <li><a href="register.php">Register</a></li>
-              <li><a href="checkout.html">Checkout</a></li>
+              <?php if (isset($_SESSION['user_id'])): ?>
+                  <li><a href="#" style="color:#fff; text-decoration:none;">Xin chào, <?php echo htmlspecialchars($_SESSION['user_name']); ?></a></li>
+                  <li><a href="logout.php">Logout</a></li>
+                  <li><a href="checkout.php">Checkout</a></li>
+              <?php else: ?>
+                  <li><a href="login.php">Login</a></li>
+                  <li><a href="register.php">Register</a></li>
+                  <li><a href="checkout.php">Checkout</a></li>
+              <?php endif; ?>
             </ul>
           </div>
 
@@ -154,11 +202,11 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
                           <div class="h_nav">
                             <h4>Submenu1</h4>
                             <ul>
-                              <li><a href="product.html">Accessories</a></li>
-                              <li><a href="product.html">Bags</a></li>
-                              <li><a href="product.html">Caps & Hats</a></li>
+                              <li><a href="product.php">Accessories</a></li>
+                              <li><a href="product.php">Bags</a></li>
+                              <li><a href="product.php">Caps & Hats</a></li>
                               <li>
-                                <a href="product.html">Hoodies & Sweatshirts</a>
+                                <a href="product.php">Hoodies & Sweatshirts</a>
                               </li>
                             </ul>
                           </div>
@@ -168,18 +216,18 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
                             <h4>Submenu2</h4>
                             <ul>
                               <li>
-                                <a href="product.html">Jackets & Coats</a>
+                                <a href="product.php">Jackets & Coats</a>
                               </li>
-                              <li><a href="product.html">Jeans</a></li>
-                              <li><a href="product.html">Jewellery</a></li>
+                              <li><a href="product.php">Jeans</a></li>
+                              <li><a href="product.php">Jewellery</a></li>
                               <li>
-                                <a href="product.html">Jumpers & Cardigans</a>
-                              </li>
-                              <li>
-                                <a href="product.html">Leather Jackets</a>
+                                <a href="product.php">Jumpers & Cardigans</a>
                               </li>
                               <li>
-                                <a href="product.html">Long Sleeve T-Shirts</a>
+                                <a href="product.php">Leather Jackets</a>
+                              </li>
+                              <li>
+                                <a href="product.php">Long Sleeve T-Shirts</a>
                               </li>
                             </ul>
                           </div>
@@ -188,17 +236,17 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
                           <div class="h_nav">
                             <h4>Submenu3</h4>
                             <ul>
-                              <li><a href="product.html">Shirts</a></li>
+                              <li><a href="product.php">Shirts</a></li>
                               <li>
-                                <a href="product.html"
+                                <a href="product.php"
                                   >Shoes, Boots & Trainers</a
                                 >
                               </li>
-                              <li><a href="product.html">Sunglasses</a></li>
-                              <li><a href="product.html">Sweatpants</a></li>
-                              <li><a href="product.html">Swimwear</a></li>
+                              <li><a href="product.php">Sunglasses</a></li>
+                              <li><a href="product.php">Sweatpants</a></li>
+                              <li><a href="product.php">Swimwear</a></li>
                               <li>
-                                <a href="product.html">Trousers & Chinos</a>
+                                <a href="product.php">Trousers & Chinos</a>
                               </li>
                             </ul>
                           </div>
@@ -207,16 +255,16 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
                           <div class="h_nav">
                             <h4>Submenu4</h4>
                             <ul>
-                              <li><a href="product.html">T-Shirts</a></li>
+                              <li><a href="product.php">T-Shirts</a></li>
                               <li>
-                                <a href="product.html">Underwear & Socks</a>
+                                <a href="product.php">Underwear & Socks</a>
                               </li>
-                              <li><a href="product.html">Vests</a></li>
+                              <li><a href="product.php">Vests</a></li>
                               <li>
-                                <a href="product.html">Jackets & Coats</a>
+                                <a href="product.php">Jackets & Coats</a>
                               </li>
-                              <li><a href="product.html">Jeans</a></li>
-                              <li><a href="product.html">Jewellery</a></li>
+                              <li><a href="product.php">Jeans</a></li>
+                              <li><a href="product.php">Jewellery</a></li>
                             </ul>
                           </div>
                         </div>
@@ -245,11 +293,11 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
                           <div class="h_nav">
                             <h4>Submenu1</h4>
                             <ul>
-                              <li><a href="product.html">Accessories</a></li>
-                              <li><a href="product.html">Bags</a></li>
-                              <li><a href="product.html">Caps & Hats</a></li>
+                              <li><a href="product.php">Accessories</a></li>
+                              <li><a href="product.php">Bags</a></li>
+                              <li><a href="product.php">Caps & Hats</a></li>
                               <li>
-                                <a href="product.html">Hoodies & Sweatshirts</a>
+                                <a href="product.php">Hoodies & Sweatshirts</a>
                               </li>
                             </ul>
                           </div>
@@ -259,18 +307,18 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
                             <h4>Submenu2</h4>
                             <ul>
                               <li>
-                                <a href="product.html">Jackets & Coats</a>
+                                <a href="product.php">Jackets & Coats</a>
                               </li>
-                              <li><a href="product.html">Jeans</a></li>
-                              <li><a href="product.html">Jewellery</a></li>
+                              <li><a href="product.php">Jeans</a></li>
+                              <li><a href="product.php">Jewellery</a></li>
                               <li>
-                                <a href="product.html">Jumpers & Cardigans</a>
-                              </li>
-                              <li>
-                                <a href="product.html">Leather Jackets</a>
+                                <a href="product.php">Jumpers & Cardigans</a>
                               </li>
                               <li>
-                                <a href="product.html">Long Sleeve T-Shirts</a>
+                                <a href="product.php">Leather Jackets</a>
+                              </li>
+                              <li>
+                                <a href="product.php">Long Sleeve T-Shirts</a>
                               </li>
                             </ul>
                           </div>
@@ -280,17 +328,17 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
                             <h4>Submenu3</h4>
 
                             <ul>
-                              <li><a href="product.html">Shirts</a></li>
+                              <li><a href="product.php">Shirts</a></li>
                               <li>
-                                <a href="product.html"
+                                <a href="product.php"
                                   >Shoes, Boots & Trainers</a
                                 >
                               </li>
-                              <li><a href="product.html">Sunglasses</a></li>
-                              <li><a href="product.html">Sweatpants</a></li>
-                              <li><a href="product.html">Swimwear</a></li>
+                              <li><a href="product.php">Sunglasses</a></li>
+                              <li><a href="product.php">Sweatpants</a></li>
+                              <li><a href="product.php">Swimwear</a></li>
                               <li>
-                                <a href="product.html">Trousers & Chinos</a>
+                                <a href="product.php">Trousers & Chinos</a>
                               </li>
                             </ul>
                           </div>
@@ -299,16 +347,16 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
                           <div class="h_nav">
                             <h4>Submenu4</h4>
                             <ul>
-                              <li><a href="product.html">T-Shirts</a></li>
+                              <li><a href="product.php">T-Shirts</a></li>
                               <li>
-                                <a href="product.html">Underwear & Socks</a>
+                                <a href="product.php">Underwear & Socks</a>
                               </li>
-                              <li><a href="product.html">Vests</a></li>
+                              <li><a href="product.php">Vests</a></li>
                               <li>
-                                <a href="product.html">Jackets & Coats</a>
+                                <a href="product.php">Jackets & Coats</a>
                               </li>
-                              <li><a href="product.html">Jeans</a></li>
-                              <li><a href="product.html">Jewellery</a></li>
+                              <li><a href="product.php">Jeans</a></li>
+                              <li><a href="product.php">Jewellery</a></li>
                             </ul>
                           </div>
                         </div>
@@ -323,10 +371,10 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
                       </div>
                     </div>
                   </li>
-                  <li><a class="color3" href="product.html">Sale</a></li>
-                  <li><a class="color4" href="404.html">About</a></li>
-                  <li><a class="color5" href="typo.html">Short Codes</a></li>
-                  <li><a class="color6" href="contact.html">Contact</a></li>
+                  <li><a class="color3" href="product.php">Sale</a></li>
+                  <li><a class="color4" href="404.php">About</a></li>
+                  <li><a class="color5" href="typo.php">Short Codes</a></li>
+                  <li><a class="color6" href="contact.php">Contact</a></li>
                 </ul>
               </div>
               <!-- /.navbar-collapse -->
@@ -335,7 +383,7 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
           <div class="col-sm-2 search-right">
             <ul class="heart">
               <li>
-                <a href="wishlist.html">
+                <a href="wishlist.php">
                   <span
                     class="glyphicon glyphicon-heart"
                     aria-hidden="true"
@@ -349,17 +397,17 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
               </li>
             </ul>
             <div class="cart box_1">
-              <a href="checkout.html">
+              <a href="checkout.php">
                 <h3>
                   <div class="total">
-                    <span class="simpleCart_total"></span>
+                    <span>$<?php echo number_format($total_price, 2); ?></span>
                   </div>
                   <img src="images/cart.png" alt="" />
                 </h3>
               </a>
-              <p>
-                <a href="javascript:;" class="simpleCart_empty">Empty Cart</a>
-              </p>
+              <form method="post" style="display:inline;">
+                  <button type="submit" name="empty_cart" class="btn btn-link" style="color:#b5b3b3; padding:0; border:none; background:none;" onclick="return confirm('Are you sure you want to empty your cart?');">Empty Cart</button>
+              </form>
             </div>
             <div class="clearfix"></div>
 
@@ -415,21 +463,143 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
     <!--banner-->
     <div class="banner-top">
       <div class="container">
-        <h1>Wishlist</h1>
+        <h1>Checkout</h1>
         <em></em>
-        <h2><a href="index.php">Home</a><label>/</label>Wishlist</h2>
+        <h2><a href="index.php">Home</a><label>/</label>Checkout</h2>
       </div>
     </div>
     <!--login-->
-    <div class="container">
-      <div class="wishlist">
-        <h6>
-          <a href="#">Product Name</a> <a href="#">Unit Price</a>
-          <a href="#">Stock Status</a>
-        </h6>
-        <p>No products were added to the wishlist</p>
+    <script>
+      $(document).ready(function (c) {
+        $(".close1").on("click", function (c) {
+          $(".cart-header").fadeOut("slow", function (c) {
+            $(".cart-header").remove();
+          });
+        });
+      });
+    </script>
+    <script>
+      $(document).ready(function (c) {
+        $(".close2").on("click", function (c) {
+          $(".cart-header1").fadeOut("slow", function (c) {
+            $(".cart-header1").remove();
+          });
+        });
+      });
+    </script>
+    <script>
+      $(document).ready(function (c) {
+        $(".close3").on("click", function (c) {
+          $(".cart-header2").fadeOut("slow", function (c) {
+            $(".cart-header2").remove();
+          });
+        });
+      });
+    </script>
+
+    <div class="check-out">
+      <div class="container">
+        <div class="bs-example4" data-example-id="simple-responsive-table">
+          <div class="table-responsive">
+            <style>
+              .checkout-table th, .checkout-table td {
+                text-align: center;
+                vertical-align: middle;
+              }
+              .checkout-table th {
+                background: #f8f8f8;
+                font-size: 1.2em;
+                border-bottom: 2px solid #f67777;
+              }
+              .checkout-table tr {
+                border-bottom: 1px solid #eee;
+              }
+              .checkout-table td {
+                background: #fff;
+                color: #222;
+                font-size: 1.05em;
+                padding: 18px 10px;
+              }
+              .checkout-table .product-name {
+                font-weight: bold;
+                color: #f67777;
+                font-size: 1.1em;
+                text-align: left;
+              }
+              .checkout-table img {
+                border-radius: 8px;
+                box-shadow: 0 2px 8px #eee;
+                margin-right: 12px;
+              }
+              .checkout-table tfoot td {
+                font-weight: bold;
+                font-size: 1.15em;
+                background: #f9f9f9;
+                color: #f67777;
+                border-top: 2px solid #f67777;
+              }
+            </style>
+            <table class="table-heading simpleCart_shelfItem checkout-table">
+              <tr>
+                <th class="table-grid">Item</th>
+                <th>Prices</th>
+                <th>Quantity</th>
+                <th>Subtotal</th>
+              </tr>
+              <?php if (empty($cart_items)): ?>
+                <tr><td colspan="4">Giỏ hàng trống.</td></tr>
+              <?php else: ?>
+                <?php foreach ($cart_items as $item): ?>
+                  <tr>
+                    <td class="ring-in product-name">
+                      <img src="<?php echo htmlspecialchars($item['product_image']); ?>" class="img-responsive" alt="" style="max-width:60px;display:inline-block;vertical-align:middle;">
+                      <span style="vertical-align:middle;"> <?php echo htmlspecialchars($item['product_name']); ?> </span>
+                    </td>
+                    <td>$<?php echo number_format($item['price'],2); ?></td>
+                    <td><?php echo $item['quantity']; ?></td>
+                    <td>$<?php echo number_format($item['price'] * $item['quantity'],2); ?></td>
+                  </tr>
+                <?php endforeach; ?>
+                <tfoot>
+                  <tr>
+                    <td colspan="3" style="text-align:right;">Tổng cộng:</td>
+                    <td>$<?php echo number_format($total_price,2); ?></td>
+                  </tr>
+                </tfoot>
+              <?php endif; ?>
+            </table>
+          </div>
+        </div>
+        <!-- FORM THANH TOÁN -->
+        <div class="payment-form" style="margin-top:30px;">
+          <h3>Thông tin thanh toán</h3>
+          <?php if (isset($error_message)) { echo "<div class='alert alert-danger'>$error_message</div>"; } ?>
+          <form action="checkout.php" method="POST">
+              <div class="form-group">
+                  <label for="card_number">Số thẻ</label>
+                  <input type="text" id="card_number" name="card_number" class="form-control" required>
+              </div>
+              <div class="form-group">
+                  <label for="expiry_date">Ngày hết hạn</label>
+                  <input type="text" id="expiry_date" name="expiry_date" class="form-control" required placeholder="MM/YY">
+              </div>
+              <div class="form-group">
+                  <label for="cvv">CVV</label>
+                  <input type="text" id="cvv" name="cvv" class="form-control" required>
+              </div>
+              <div class="form-group">
+                  <label for="total_price">Tổng cộng</label>
+                  <input type="text" id="total_price" name="total_price" class="form-control" value="<?php echo number_format($total_price, 2); ?>" readonly>
+              </div>
+              <button type="submit" class="btn btn-primary">Thanh toán</button>
+          </form>
+        </div>
+        <div class="produced">
+          <a href="single.php" class="hvr-skew-backward">Produced To Buy</a>
+        </div>
       </div>
     </div>
+
     <!--//login-->
     <!--brand-->
     <div class="container">
@@ -467,14 +637,14 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
           <div class="col-md-3 footer-middle-in">
             <h6>Information</h6>
             <ul class="in">
-              <li><a href="404.html">About</a></li>
-              <li><a href="contact.html">Contact Us</a></li>
+              <li><a href="404.php">About</a></li>
+              <li><a href="contact.php">Contact Us</a></li>
               <li><a href="#">Returns</a></li>
-              <li><a href="contact.html">Site Map</a></li>
+              <li><a href="contact.php">Site Map</a></li>
             </ul>
             <ul class="in in1">
               <li><a href="#">Order History</a></li>
-              <li><a href="wishlist.html">Wish List</a></li>
+              <li><a href="wishlist.php">Wish List</a></li>
               <li><a href="login.php">Login</a></li>
             </ul>
             <div class="clearfix"></div>
@@ -541,4 +711,4 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
     <!-- slide -->
     <script src="js/bootstrap.min.js"></script>
   </body>
-</html>
+</html> 

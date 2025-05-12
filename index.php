@@ -1,5 +1,14 @@
 <?php
+if (session_status() == PHP_SESSION_NONE) session_start();
 require 'db.php';
+require_once 'cart_total.php';
+
+if (isset($_POST['empty_cart']) && !empty($_SESSION['user_id'])) {
+    $stmt = $pdo->prepare('DELETE FROM cart WHERE user_id = ?');
+    $stmt->execute([$_SESSION['user_id']]);
+    header("Location: " . $_SERVER['REQUEST_URI']);
+    exit;
+}
 ?>
 <!--A Design by W3layouts 
 Author: W3layout
@@ -95,11 +104,11 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
                 <?php if (!empty($_SESSION['user_id']) && !empty($_SESSION['user_name'])): ?>
                     <li><a href="#" style="color:#fff; text-decoration:none;">Xin chào, <?php echo htmlspecialchars($_SESSION['user_name'] ?? ''); ?></a></li>
                     <li><a href="logout.php">Logout</a></li>
-                    <li><a href="checkout.html">Checkout</a></li>
+                    <li><a href="checkout.php">Checkout</a></li>
                 <?php else: ?>
                     <li><a href="login.php">Login</a></li>
                     <li><a href="register.php">Register</a></li>
-                    <li><a href="checkout.html">Checkout</a></li>
+                    <li><a href="checkout.php">Checkout</a></li>
                 <?php endif; ?>
             </ul>
           </div>
@@ -164,11 +173,11 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
                           <div class="h_nav">
                             <h4>Submenu1</h4>
                             <ul>
-                              <li><a href="product.html">Accessories</a></li>
-                              <li><a href="product.html">Bags</a></li>
-                              <li><a href="product.html">Caps & Hats</a></li>
+                              <li><a href="product.php">Accessories</a></li>
+                              <li><a href="product.php">Bags</a></li>
+                              <li><a href="product.php">Caps & Hats</a></li>
                               <li>
-                                <a href="product.html">Hoodies & Sweatshirts</a>
+                                <a href="product.php">Hoodies & Sweatshirts</a>
                               </li>
                             </ul>
                           </div>
@@ -178,18 +187,18 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
                             <h4>Submenu2</h4>
                             <ul>
                               <li>
-                                <a href="product.html">Jackets & Coats</a>
+                                <a href="product.php">Jackets & Coats</a>
                               </li>
-                              <li><a href="product.html">Jeans</a></li>
-                              <li><a href="product.html">Jewellery</a></li>
+                              <li><a href="product.php">Jeans</a></li>
+                              <li><a href="product.php">Jewellery</a></li>
                               <li>
-                                <a href="product.html">Jumpers & Cardigans</a>
-                              </li>
-                              <li>
-                                <a href="product.html">Leather Jackets</a>
+                                <a href="product.php">Jumpers & Cardigans</a>
                               </li>
                               <li>
-                                <a href="product.html">Long Sleeve T-Shirts</a>
+                                <a href="product.php">Leather Jackets</a>
+                              </li>
+                              <li>
+                                <a href="product.php">Long Sleeve T-Shirts</a>
                               </li>
                             </ul>
                           </div>
@@ -198,17 +207,17 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
                           <div class="h_nav">
                             <h4>Submenu3</h4>
                             <ul>
-                              <li><a href="product.html">Shirts</a></li>
+                              <li><a href="product.php">Shirts</a></li>
                               <li>
-                                <a href="product.html"
+                                <a href="product.php"
                                   >Shoes, Boots & Trainers</a
                                 >
                               </li>
-                              <li><a href="product.html">Sunglasses</a></li>
-                              <li><a href="product.html">Sweatpants</a></li>
-                              <li><a href="product.html">Swimwear</a></li>
+                              <li><a href="product.php">Sunglasses</a></li>
+                              <li><a href="product.php">Sweatpants</a></li>
+                              <li><a href="product.php">Swimwear</a></li>
                               <li>
-                                <a href="product.html">Trousers & Chinos</a>
+                                <a href="product.php">Trousers & Chinos</a>
                               </li>
                             </ul>
                           </div>
@@ -217,16 +226,16 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
                           <div class="h_nav">
                             <h4>Submenu4</h4>
                             <ul>
-                              <li><a href="product.html">T-Shirts</a></li>
+                              <li><a href="product.php">T-Shirts</a></li>
                               <li>
-                                <a href="product.html">Underwear & Socks</a>
+                                <a href="product.php">Underwear & Socks</a>
                               </li>
-                              <li><a href="product.html">Vests</a></li>
+                              <li><a href="product.php">Vests</a></li>
                               <li>
-                                <a href="product.html">Jackets & Coats</a>
+                                <a href="product.php">Jackets & Coats</a>
                               </li>
-                              <li><a href="product.html">Jeans</a></li>
-                              <li><a href="product.html">Jewellery</a></li>
+                              <li><a href="product.php">Jeans</a></li>
+                              <li><a href="product.php">Jewellery</a></li>
                             </ul>
                           </div>
                         </div>
@@ -255,11 +264,11 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
                           <div class="h_nav">
                             <h4>Submenu1</h4>
                             <ul>
-                              <li><a href="product.html">Accessories</a></li>
-                              <li><a href="product.html">Bags</a></li>
-                              <li><a href="product.html">Caps & Hats</a></li>
+                              <li><a href="product.php">Accessories</a></li>
+                              <li><a href="product.php">Bags</a></li>
+                              <li><a href="product.php">Caps & Hats</a></li>
                               <li>
-                                <a href="product.html">Hoodies & Sweatshirts</a>
+                                <a href="product.php">Hoodies & Sweatshirts</a>
                               </li>
                             </ul>
                           </div>
@@ -269,18 +278,18 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
                             <h4>Submenu2</h4>
                             <ul>
                               <li>
-                                <a href="product.html">Jackets & Coats</a>
+                                <a href="product.php">Jackets & Coats</a>
                               </li>
-                              <li><a href="product.html">Jeans</a></li>
-                              <li><a href="product.html">Jewellery</a></li>
+                              <li><a href="product.php">Jeans</a></li>
+                              <li><a href="product.php">Jewellery</a></li>
                               <li>
-                                <a href="product.html">Jumpers & Cardigans</a>
-                              </li>
-                              <li>
-                                <a href="product.html">Leather Jackets</a>
+                                <a href="product.php">Jumpers & Cardigans</a>
                               </li>
                               <li>
-                                <a href="product.html">Long Sleeve T-Shirts</a>
+                                <a href="product.php">Leather Jackets</a>
+                              </li>
+                              <li>
+                                <a href="product.php">Long Sleeve T-Shirts</a>
                               </li>
                             </ul>
                           </div>
@@ -290,17 +299,17 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
                             <h4>Submenu3</h4>
 
                             <ul>
-                              <li><a href="product.html">Shirts</a></li>
+                              <li><a href="product.php">Shirts</a></li>
                               <li>
-                                <a href="product.html"
+                                <a href="product.php"
                                   >Shoes, Boots & Trainers</a
                                 >
                               </li>
-                              <li><a href="product.html">Sunglasses</a></li>
-                              <li><a href="product.html">Sweatpants</a></li>
-                              <li><a href="product.html">Swimwear</a></li>
+                              <li><a href="product.php">Sunglasses</a></li>
+                              <li><a href="product.php">Sweatpants</a></li>
+                              <li><a href="product.php">Swimwear</a></li>
                               <li>
-                                <a href="product.html">Trousers & Chinos</a>
+                                <a href="product.php">Trousers & Chinos</a>
                               </li>
                             </ul>
                           </div>
@@ -309,16 +318,16 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
                           <div class="h_nav">
                             <h4>Submenu4</h4>
                             <ul>
-                              <li><a href="product.html">T-Shirts</a></li>
+                              <li><a href="product.php">T-Shirts</a></li>
                               <li>
-                                <a href="product.html">Underwear & Socks</a>
+                                <a href="product.php">Underwear & Socks</a>
                               </li>
-                              <li><a href="product.html">Vests</a></li>
+                              <li><a href="product.php">Vests</a></li>
                               <li>
-                                <a href="product.html">Jackets & Coats</a>
+                                <a href="product.php">Jackets & Coats</a>
                               </li>
-                              <li><a href="product.html">Jeans</a></li>
-                              <li><a href="product.html">Jewellery</a></li>
+                              <li><a href="product.php">Jeans</a></li>
+                              <li><a href="product.php">Jewellery</a></li>
                             </ul>
                           </div>
                         </div>
@@ -333,10 +342,14 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
                       </div>
                     </div>
                   </li>
-                  <li><a class="color3" href="product.html">Sale</a></li>
-                  <li><a class="color4" href="404.html">About</a></li>
-                  <li><a class="color5" href="typo.html">Short Codes</a></li>
-                  <li><a class="color6" href="contact.html">Contact</a></li>
+                  <li><a class="color3" href="product.php">Sale</a></li>
+                  <li><a class="color4" href="404.php">About</a></li>
+                  <li><a class="color5" href="typo.php">Short Codes</a></li>
+                  <li><a class="color6" href="contact.php">Contact</a></li>
+                  <!-- <li><a class="color3" href="product.php">Sale</a></li>
+                  <li><a class="color4" href="404.php">About</a></li>
+                  <li><a class="color5" href="typo.php">Short Codes</a></li>
+                  <li><a class="color6" href="contact.php">Contact</a></li> -->
                 </ul>
               </div>
               <!-- /.navbar-collapse -->
@@ -345,7 +358,7 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
           <div class="col-sm-2 search-right">
             <ul class="heart">
               <li>
-                <a href="wishlist.html">
+                <a href="wishlist.php">
                   <span
                     class="glyphicon glyphicon-heart"
                     aria-hidden="true"
@@ -359,17 +372,19 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
               </li>
             </ul>
             <div class="cart box_1">
-              <a href="checkout.html">
+              <a href="checkout.php">
                 <h3>
                   <div class="total">
-                    <span class="simpleCart_total"></span>
+                    <span>
+                        $<?php echo number_format($total_price, 2); ?>
+                    </span>
                   </div>
                   <img src="images/cart.png" alt="" />
                 </h3>
               </a>
-              <p>
-                <a href="javascript:;" class="simpleCart_empty">Empty Cart</a>
-              </p>
+              <form method="post" style="display:inline;">
+                <button type="submit" name="empty_cart" class="btn btn-link" style="color:#b5b3b3; padding:0; border:none; background:none;" onclick="return confirm('Are you sure you want to empty your cart?');">Empty Cart</button>
+              </form>
             </div>
             <div class="clearfix"></div>
 
@@ -454,7 +469,7 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
         <div class="content-top">
           <div class="col-md-6 col-md">
             <div class="col-1">
-              <a href="single.html" class="b-link-stroke b-animate-go thickbox">
+              <a href="single.php" class="b-link-stroke b-animate-go thickbox">
                 <img src="images/pi.jpg" class="img-responsive" alt="" />
                 <div class="b-wrapper1 long-img">
                   <p class="b-animate b-from-right b-delay03">Lorem ipsum</p>
@@ -463,22 +478,22 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
                 </div></a
               >
 
-              <!---<a href="single.html"><img src="images/pi.jpg" class="img-responsive" alt=""></a>-->
+              <!---<a href="single.php"><img src="images/pi.jpg" class="img-responsive" alt=""></a>-->
             </div>
             <div class="col-2">
               <span>Hot Deal</span>
-              <h2><a href="single.html">Luxurious &amp; Trendy</a></h2>
+              <h2><a href="single.php">Luxurious &amp; Trendy</a></h2>
               <p>
                 Contrary to popular belief, Lorem Ipsum is not simply random
                 text. It has roots in a piece of classical Latin literature from
                 45 BC, making it over 2000 years
               </p>
-              <a href="single.html" class="buy-now">Buy Now</a>
+              <a href="single.php.php" class="buy-now">Buy Now</a>
             </div>
           </div>
           <div class="col-md-6 col-md1">
             <div class="col-3">
-              <a href="single.html"
+              <a href="single.php"
                 ><img src="images/pi1.jpg" class="img-responsive" alt="" />
                 <div class="col-pic">
                   <p>Lorem Ipsum</p>
@@ -488,7 +503,7 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
               >
             </div>
             <div class="col-3">
-              <a href="single.html"
+              <a href="single.php"
                 ><img src="images/pi2.jpg" class="img-responsive" alt="" />
                 <div class="col-pic">
                   <p>Lorem Ipsum</p>
@@ -498,7 +513,7 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
               >
             </div>
             <div class="col-3">
-              <a href="single.html"
+              <a href="single.php"
                 ><img src="images/pi3.jpg" class="img-responsive" alt="" />
                 <div class="col-pic">
                   <p>Lorem Ipsum</p>
@@ -527,7 +542,7 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
                       class="b-link-stripe b-animate-go thickbox"
                       ><i class="glyphicon glyphicon-search icon"></i
                     ></a>
-                    <a href="single.html"
+                    <a href="single.php"
                       ><i class="glyphicon glyphicon-menu-right icon"></i
                     ></a>
                   </div>
@@ -536,10 +551,21 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
                   <div class="women">
                     <div class="women-top">
                       <span>Women</span>
-                      <h6><a href="single.html">Sed ut perspiciati</a></h6>
+                      <h6><a href="single.php">Sed ut perspiciati</a></h6>
                     </div>
                     <div class="img item_add">
-                      <a href="#"><img src="images/ca.png" alt="" /></a>
+                      <?php if (!empty($_SESSION['user_id'])): ?>
+                        <form method="post" action="add_to_cart.php" style="display:inline;">
+                          <input type="hidden" name="product_name" value="<?php echo htmlspecialchars($product['name'] ?? 'Sed ut perspiciati'); ?>">
+                          <input type="hidden" name="product_image" value="images/pc.jpg">
+                          <input type="hidden" name="price" value="70.00">
+                          <button type="submit" style="background:none;border:none;padding:0;">
+                            <img src="images/ca.png" alt="">
+                          </button>
+                        </form>
+                      <?php else: ?>
+                        <a href="login.php"><img src="images/ca.png" alt=""></a>
+                      <?php endif; ?>
                     </div>
                     <div class="clearfix"></div>
                   </div>
@@ -568,7 +594,7 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
                       class="b-link-stripe b-animate-go thickbox"
                       ><i class="glyphicon glyphicon-search icon"></i
                     ></a>
-                    <a href="single.html"
+                    <a href="single.php"
                       ><i class="glyphicon glyphicon-menu-right icon"></i
                     ></a>
                   </div>
@@ -577,10 +603,21 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
                   <div class="women">
                     <div class="women-top">
                       <span>Women</span>
-                      <h6><a href="single.html">At vero eos</a></h6>
+                      <h6><a href="single.php">At vero eos</a></h6>
                     </div>
                     <div class="img item_add">
-                      <a href="#"><img src="images/ca.png" alt="" /></a>
+                      <?php if (!empty($_SESSION['user_id'])): ?>
+                        <form method="post" action="add_to_cart.php" style="display:inline;">
+                          <input type="hidden" name="product_name" value="<?php echo htmlspecialchars($product['name'] ?? 'At vero eos'); ?>">
+                          <input type="hidden" name="product_image" value="images/pc1.jpg">
+                          <input type="hidden" name="price" value="70.00">
+                          <button type="submit" style="background:none;border:none;padding:0;">
+                            <img src="images/ca.png" alt="">
+                          </button>
+                        </form>
+                      <?php else: ?>
+                        <a href="login.php"><img src="images/ca.png" alt=""></a>
+                      <?php endif; ?>
                     </div>
                     <div class="clearfix"></div>
                   </div>
@@ -609,7 +646,7 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
                       class="b-link-stripe b-animate-go thickbox"
                       ><i class="glyphicon glyphicon-search icon"></i
                     ></a>
-                    <a href="single.html"
+                    <a href="single.php"
                       ><i class="glyphicon glyphicon-menu-right icon"></i
                     ></a>
                   </div>
@@ -618,10 +655,21 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
                   <div class="women">
                     <div class="women-top">
                       <span>Men</span>
-                      <h6><a href="single.html">Sed ut perspiciati</a></h6>
+                      <h6><a href="single.php">Sed ut perspiciati</a></h6>
                     </div>
                     <div class="img item_add">
-                      <a href="#"><img src="images/ca.png" alt="" /></a>
+                      <?php if (!empty($_SESSION['user_id'])): ?>
+                        <form method="post" action="add_to_cart.php" style="display:inline;">
+                          <input type="hidden" name="product_name" value="<?php echo htmlspecialchars($product['name'] ?? 'Sed ut perspiciati'); ?>">
+                          <input type="hidden" name="product_image" value="images/pc2.jpg">
+                          <input type="hidden" name="price" value="70.00">
+                          <button type="submit" style="background:none;border:none;padding:0;">
+                            <img src="images/ca.png" alt="">
+                          </button>
+                        </form>
+                      <?php else: ?>
+                        <a href="login.php"><img src="images/ca.png" alt=""></a>
+                      <?php endif; ?>
                     </div>
                     <div class="clearfix"></div>
                   </div>
@@ -650,7 +698,7 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
                       class="b-link-stripe b-animate-go thickbox"
                       ><i class="glyphicon glyphicon-search icon"></i
                     ></a>
-                    <a href="single.html"
+                    <a href="single.php"
                       ><i class="glyphicon glyphicon-menu-right icon"></i
                     ></a>
                   </div>
@@ -659,10 +707,21 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
                   <div class="women">
                     <div class="women-top">
                       <span>Women</span>
-                      <h6><a href="single.html">On the other</a></h6>
+                      <h6><a href="single.php">On the other</a></h6>
                     </div>
                     <div class="img item_add">
-                      <a href="#"><img src="images/ca.png" alt="" /></a>
+                      <?php if (!empty($_SESSION['user_id'])): ?>
+                        <form method="post" action="add_to_cart.php" style="display:inline;">
+                          <input type="hidden" name="product_name" value="<?php echo htmlspecialchars($product['name'] ?? 'On the other'); ?>">
+                          <input type="hidden" name="product_image" value="images/pc3.jpg">
+                          <input type="hidden" name="price" value="70.00">
+                          <button type="submit" style="background:none;border:none;padding:0;">
+                            <img src="images/ca.png" alt="">
+                          </button>
+                        </form>
+                      <?php else: ?>
+                        <a href="login.php"><img src="images/ca.png" alt=""></a>
+                      <?php endif; ?>
                     </div>
                     <div class="clearfix"></div>
                   </div>
@@ -694,7 +753,7 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
                       class="b-link-stripe b-animate-go thickbox"
                       ><i class="glyphicon glyphicon-search icon"></i
                     ></a>
-                    <a href="single.html"
+                    <a href="single.php"
                       ><i class="glyphicon glyphicon-menu-right icon"></i
                     ></a>
                   </div>
@@ -703,10 +762,21 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
                   <div class="women">
                     <div class="women-top">
                       <span>Men</span>
-                      <h6><a href="single.html">On the other</a></h6>
+                      <h6><a href="single.php">On the other</a></h6>
                     </div>
                     <div class="img item_add">
-                      <a href="#"><img src="images/ca.png" alt="" /></a>
+                      <?php if (!empty($_SESSION['user_id'])): ?>
+                        <form method="post" action="add_to_cart.php" style="display:inline;">
+                          <input type="hidden" name="product_name" value="<?php echo htmlspecialchars($product['name'] ?? 'On the other'); ?>">
+                          <input type="hidden" name="product_image" value="images/pc4.jpg">
+                          <input type="hidden" name="price" value="70.00">
+                          <button type="submit" style="background:none;border:none;padding:0;">
+                            <img src="images/ca.png" alt="">
+                          </button>
+                        </form>
+                      <?php else: ?>
+                        <a href="login.php"><img src="images/ca.png" alt=""></a>
+                      <?php endif; ?>
                     </div>
                     <div class="clearfix"></div>
                   </div>
@@ -735,7 +805,7 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
                       class="b-link-stripe b-animate-go thickbox"
                       ><i class="glyphicon glyphicon-search icon"></i
                     ></a>
-                    <a href="single.html"
+                    <a href="single.php"
                       ><i class="glyphicon glyphicon-menu-right icon"></i
                     ></a>
                   </div>
@@ -744,10 +814,21 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
                   <div class="women">
                     <div class="women-top">
                       <span>Men</span>
-                      <h6><a href="single.html">Sed ut perspiciati</a></h6>
+                      <h6><a href="single.php">Sed ut perspiciati</a></h6>
                     </div>
                     <div class="img item_add">
-                      <a href="#"><img src="images/ca.png" alt="" /></a>
+                      <?php if (!empty($_SESSION['user_id'])): ?>
+                        <form method="post" action="add_to_cart.php" style="display:inline;">
+                          <input type="hidden" name="product_name" value="<?php echo htmlspecialchars($product['name'] ?? 'Sed ut perspiciati'); ?>">
+                          <input type="hidden" name="product_image" value="images/pc5.jpg">
+                          <input type="hidden" name="price" value="70.00">
+                          <button type="submit" style="background:none;border:none;padding:0;">
+                            <img src="images/ca.png" alt="">
+                          </button>
+                        </form>
+                      <?php else: ?>
+                        <a href="login.php"><img src="images/ca.png" alt=""></a>
+                      <?php endif; ?>
                     </div>
                     <div class="clearfix"></div>
                   </div>
@@ -776,7 +857,7 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
                       class="b-link-stripe b-animate-go thickbox"
                       ><i class="glyphicon glyphicon-search icon"></i
                     ></a>
-                    <a href="single.html"
+                    <a href="single.php"
                       ><i class="glyphicon glyphicon-menu-right icon"></i
                     ></a>
                   </div>
@@ -785,10 +866,21 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
                   <div class="women">
                     <div class="women-top">
                       <span>Women</span>
-                      <h6><a href="single.html">At vero eos</a></h6>
+                      <h6><a href="single.php">At vero eos</a></h6>
                     </div>
                     <div class="img item_add">
-                      <a href="#"><img src="images/ca.png" alt="" /></a>
+                      <?php if (!empty($_SESSION['user_id'])): ?>
+                        <form method="post" action="add_to_cart.php" style="display:inline;">
+                          <input type="hidden" name="product_name" value="<?php echo htmlspecialchars($product['name'] ?? 'At vero eos'); ?>">
+                          <input type="hidden" name="product_image" value="images/pc6.jpg">
+                          <input type="hidden" name="price" value="70.00">
+                          <button type="submit" style="background:none;border:none;padding:0;">
+                            <img src="images/ca.png" alt="">
+                          </button>
+                        </form>
+                      <?php else: ?>
+                        <a href="login.php"><img src="images/ca.png" alt=""></a>
+                      <?php endif; ?>
                     </div>
                     <div class="clearfix"></div>
                   </div>
@@ -817,7 +909,7 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
                       class="b-link-stripe b-animate-go thickbox"
                       ><i class="glyphicon glyphicon-search icon"></i
                     ></a>
-                    <a href="single.html"
+                    <a href="single.php"
                       ><i class="glyphicon glyphicon-menu-right icon"></i
                     ></a>
                   </div>
@@ -826,10 +918,21 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
                   <div class="women">
                     <div class="women-top">
                       <span>Men</span>
-                      <h6><a href="single.html">Sed ut perspiciati</a></h6>
+                      <h6><a href="single.php">Sed ut perspiciati</a></h6>
                     </div>
                     <div class="img item_add">
-                      <a href="#"><img src="images/ca.png" alt="" /></a>
+                      <?php if (!empty($_SESSION['user_id'])): ?>
+                        <form method="post" action="add_to_cart.php" style="display:inline;">
+                          <input type="hidden" name="product_name" value="<?php echo htmlspecialchars($product['name'] ?? 'Sed ut perspiciati'); ?>">
+                          <input type="hidden" name="product_image" value="images/pc7.jpg">
+                          <input type="hidden" name="price" value="70.00">
+                          <button type="submit" style="background:none;border:none;padding:0;">
+                            <img src="images/ca.png" alt="">
+                          </button>
+                        </form>
+                      <?php else: ?>
+                        <a href="login.php"><img src="images/ca.png" alt=""></a>
+                      <?php endif; ?>
                     </div>
                     <div class="clearfix"></div>
                   </div>
@@ -886,14 +989,14 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
           <div class="col-md-3 footer-middle-in">
             <h6>Information</h6>
             <ul class="in">
-              <li><a href="404.html">About</a></li>
-              <li><a href="contact.html">Contact Us</a></li>
+              <li><a href="404.php">About</a></li>
+              <li><a href="contact.php">Contact Us</a></li>
               <li><a href="#">Returns</a></li>
-              <li><a href="contact.html">Site Map</a></li>
+              <li><a href="contact.php">Site Map</a></li>
             </ul>
             <ul class="in in1">
               <li><a href="#">Order History</a></li>
-              <li><a href="wishlist.html">Wish List</a></li>
+              <li><a href="wishlist.php">Wish List</a></li>
               <li><a href="login.php">Login</a></li>
             </ul>
             <div class="clearfix"></div>

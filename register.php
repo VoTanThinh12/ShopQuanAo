@@ -81,11 +81,11 @@ jQuery(function() {
           <?php if (isset($_SESSION['user_id'])): ?>
             <li><a href="#" style="color:#fff; text-decoration:none;">Xin chào, <?php echo htmlspecialchars($_SESSION['user_name']); ?></a></li>
             <li><a href="logout.php">Logout</a></li>
-            <li><a href="checkout.html">Checkout</a></li>
+            <li><a href="checkout.php">Checkout</a></li>
           <?php else: ?>
             <li><a href="login.php">Login</a></li>
             <li><a href="register.php">Register</a></li>
-            <li><a href="checkout.html">Checkout</a></li>
+            <li><a href="checkout.php">Checkout</a></li>
           <?php endif; ?>
         </ul>
       </div>
@@ -122,10 +122,10 @@ jQuery(function() {
                       <div class="h_nav">
                         <h4>Submenu1</h4>
                         <ul>
-                          <li><a href="product.html">Accessories</a></li>
-                          <li><a href="product.html">Bags</a></li>
-                          <li><a href="product.html">Caps & Hats</a></li>
-                          <li><a href="product.html">Hoodies & Sweatshirts</a></li>
+                          <li><a href="product.php">Accessories</a></li>
+                          <li><a href="product.php">Bags</a></li>
+                          <li><a href="product.php">Caps & Hats</a></li>
+                          <li><a href="product.php">Hoodies & Sweatshirts</a></li>
                         </ul>
                       </div>
                     </div>
@@ -133,12 +133,12 @@ jQuery(function() {
                       <div class="h_nav">
                         <h4>Submenu2</h4>
                         <ul>
-                          <li><a href="product.html">Jackets & Coats</a></li>
-                          <li><a href="product.html">Jeans</a></li>
-                          <li><a href="product.html">Jewellery</a></li>
-                          <li><a href="product.html">Jumpers & Cardigans</a></li>
-                          <li><a href="product.html">Leather Jackets</a></li>
-                          <li><a href="product.html">Long Sleeve T-Shirts</a></li>
+                          <li><a href="product.php">Jackets & Coats</a></li>
+                          <li><a href="product.php">Jeans</a></li>
+                          <li><a href="product.php">Jewellery</a></li>
+                          <li><a href="product.php">Jumpers & Cardigans</a></li>
+                          <li><a href="product.php">Leather Jackets</a></li>
+                          <li><a href="product.php">Long Sleeve T-Shirts</a></li>
                         </ul>
                       </div>
                     </div>
@@ -146,12 +146,12 @@ jQuery(function() {
                       <div class="h_nav">
                         <h4>Submenu3</h4>
                         <ul>
-                          <li><a href="product.html">Shirts</a></li>
-                          <li><a href="product.html">Shoes, Boots & Trainers</a></li>
-                          <li><a href="product.html">Sunglasses</a></li>
-                          <li><a href="product.html">Sweatpants</a></li>
-                          <li><a href="product.html">Swimwear</a></li>
-                          <li><a href="product.html">Trousers & Chinos</a></li>
+                          <li><a href="product.php">Shirts</a></li>
+                          <li><a href="product.php">Shoes, Boots & Trainers</a></li>
+                          <li><a href="product.php">Sunglasses</a></li>
+                          <li><a href="product.php">Sweatpants</a></li>
+                          <li><a href="product.php">Swimwear</a></li>
+                          <li><a href="product.php">Trousers & Chinos</a></li>
                         </ul>
                       </div>
                     </div>
@@ -159,12 +159,12 @@ jQuery(function() {
                       <div class="h_nav">
                         <h4>Submenu4</h4>
                         <ul>
-                          <li><a href="product.html">T-Shirts</a></li>
-                          <li><a href="product.html">Underwear & Socks</a></li>
-                          <li><a href="product.html">Vests</a></li>
-                          <li><a href="product.html">Jackets & Coats</a></li>
-                          <li><a href="product.html">Jeans</a></li>
-                          <li><a href="product.html">Jewellery</a></li>
+                          <li><a href="product.php">T-Shirts</a></li>
+                          <li><a href="product.php">Underwear & Socks</a></li>
+                          <li><a href="product.php">Vests</a></li>
+                          <li><a href="product.php">Jackets & Coats</a></li>
+                          <li><a href="product.php">Jeans</a></li>
+                          <li><a href="product.php">Jewellery</a></li>
                         </ul>
                       </div>
                     </div>
@@ -183,21 +183,21 @@ jQuery(function() {
                   </div>
                 </div>
               </li>
-              <li><a class="color3" href="product.html">Sale</a></li>
-              <li><a class="color4" href="404.html">About</a></li>
-              <li><a class="color5" href="typo.html">Short Codes</a></li>
-              <li><a class="color6" href="contact.html">Contact</a></li>
+              <li><a class="color3" href="product.php">Sale</a></li>
+              <li><a class="color4" href="404.php">About</a></li>
+              <li><a class="color5" href="typo.php">Short Codes</a></li>
+              <li><a class="color6" href="contact.php">Contact</a></li>
             </ul>
           </div> <!-- /.navbar-collapse -->
         </nav>
       </div>
       <div class="col-sm-2 search-right">
         <ul class="heart">
-          <li><a href="wishlist.html"><span class="glyphicon glyphicon-heart" aria-hidden="true"></span></a></li>
+          <li><a href="wishlist.php"><span class="glyphicon glyphicon-heart" aria-hidden="true"></span></a></li>
           <li><a class="play-icon popup-with-zoom-anim" href="#small-dialog"><i class="glyphicon glyphicon-search"></i></a></li>
         </ul>
         <div class="cart box_1">
-          <a href="checkout.html">
+          <a href="checkout.php">
             <h3>
               <div class="total"><span class="simpleCart_total"></span></div>
               <img src="images/cart.png" alt=""/>

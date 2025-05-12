@@ -1,5 +1,5 @@
 <?php
-session_start();
+// session_start(); // Đã xoá, không nên khởi tạo session ở đây
 
 $host = 'localhost';
 $db   = 'shopdb';
