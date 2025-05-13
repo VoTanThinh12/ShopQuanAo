@@ -30,21 +30,28 @@ $stmt->execute([$user_id]);
             border-radius: 12px;
             box-shadow: 0 4px 24px #f6777740;
             padding: 40px 30px 30px 30px;
-            text-align: center;
+            text-align: left;
         }
         .order-confirm-box h2 {
             color: #f67777;
             margin-bottom: 20px;
             font-size: 2em;
+            text-align: center;
         }
         .order-confirm-box .info {
             font-size: 1.1em;
             color: #444;
-            margin-bottom: 18px;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            text-align: left;
         }
         .order-confirm-box .label {
             color: #f67777;
             font-weight: bold;
+            min-width: 170px;
+            display: inline-block;
+            text-align: left;
         }
         .order-confirm-box .btn-home {
             margin-top: 25px;
@@ -57,6 +64,7 @@ $stmt->execute([$user_id]);
             transition: background 0.2s;
             text-decoration: none;
             display: inline-block;
+            text-align: center;
         }
         .order-confirm-box .btn-home:hover {
             background: #d95c5c;
@@ -71,6 +79,13 @@ $stmt->execute([$user_id]);
     <div class="order-confirm-box">
         <?php if ($order): ?>
             <h2>Đơn hàng của bạn đã được xác nhận!</h2>
+            <div class="info"><span class="label">Họ tên người nhận:</span> <?php echo htmlspecialchars($order['receiver_name']); ?></div>
+            <div class="info"><span class="label">Email:</span> <?php echo htmlspecialchars($order['receiver_email']); ?></div>
+            <div class="info"><span class="label">Số điện thoại:</span> <?php echo htmlspecialchars($order['receiver_phone']); ?></div>
+            <div class="info"><span class="label">Địa chỉ nhận hàng:</span> <?php echo htmlspecialchars($order['receiver_address']); ?></div>
+            <?php if (!empty($order['note'])): ?>
+            <div class="info"><span class="label">Ghi chú:</span> <?php echo htmlspecialchars($order['note']); ?></div>
+            <?php endif; ?>
             <div class="info"><span class="label">Tổng tiền:</span> <?php echo number_format($order['total_price'], 0, ',', '.'); ?> VND</div>
             <div class="info"><span class="label">Trạng thái thanh toán:</span> <?php echo htmlspecialchars($order['payment_status']); ?></div>
             <div class="info"><span class="label">Phương thức thanh toán:</span> <?php echo htmlspecialchars($order['payment_method']); ?></div>

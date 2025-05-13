@@ -26,23 +26,31 @@
     
     // Xử lý khi submit form thanh toán
     if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-        $card_number = $_POST['card_number'];
-        $expiry_date = $_POST['expiry_date'];
-        $cvv = $_POST['cvv'];
-        
-        // Giả lập trạng thái thanh toán (thực tế nên tích hợp cổng thanh toán)
-        $payment_status = 'paid';
-        
-        // Lưu đơn hàng vào database
-        if ($payment_status == 'paid') {
-            $stmt = $pdo->prepare("INSERT INTO orders (user_id, total_price, payment_status, payment_method) VALUES (?, ?, ?, ?)");
-            $stmt->execute([$user_id, $total_price, $payment_status, 'Credit Card']);
-            
-            // Chuyển hướng sang trang xác nhận đơn hàng
+        $receiver_name = $_POST['receiver_name'] ?? '';
+        $receiver_email = $_POST['receiver_email'] ?? '';
+        $receiver_phone = $_POST['receiver_phone'] ?? '';
+        $receiver_address = $_POST['receiver_address'] ?? '';
+        $note = $_POST['note'] ?? '';
+        $payment_method = $_POST['payment_method'] ?? 'cod';
+        $card_number = $_POST['card_number'] ?? '';
+        $expiry_date = $_POST['expiry_date'] ?? '';
+        $cvv = $_POST['cvv'] ?? '';
+        $errors = [];
+        if (empty($receiver_name)) $errors[] = 'Vui lòng nhập họ tên người nhận';
+        if (empty($receiver_email)) $errors[] = 'Vui lòng nhập email';
+        if (empty($receiver_phone)) $errors[] = 'Vui lòng nhập số điện thoại nhận hàng';
+        if (empty($receiver_address)) $errors[] = 'Vui lòng nhập địa chỉ nhận hàng';
+        if ($payment_method === 'card') {
+            if (empty($card_number)) $errors[] = 'Vui lòng nhập số thẻ';
+            if (empty($expiry_date)) $errors[] = 'Vui lòng nhập ngày hết hạn';
+            if (empty($cvv)) $errors[] = 'Vui lòng nhập CVV';
+        }
+        if (empty($errors)) {
+            $payment_status = 'Paid';
+            $stmt = $pdo->prepare("INSERT INTO orders (user_id, receiver_name, receiver_email, receiver_phone, receiver_address, note, total_price, payment_status, payment_method) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt->execute([$user_id, $receiver_name, $receiver_email, $receiver_phone, $receiver_address, $note, $total_price, $payment_status, $payment_method]);
             header("Location: order_confirmation.php");
             exit;
-        } else {
-            $error_message = "Thanh toán thất bại. Vui lòng thử lại.";
         }
     }
     ?>
@@ -570,32 +578,46 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
             </table>
           </div>
         </div>
-        <!-- FORM THANH TOÁN -->
-        <div class="payment-form" style="margin-top:30px;">
-          <h3>Thông tin thanh toán</h3>
-          <?php if (isset($error_message)) { echo "<div class='alert alert-danger'>$error_message</div>"; } ?>
-          <form action="checkout.php" method="POST">
-              <div class="form-group">
-                  <label for="card_number">Số thẻ</label>
-                  <input type="text" id="card_number" name="card_number" class="form-control" required>
+        <!-- FORM NHẬN HÀNG -->
+        <div class="shipping-form" style="margin-top:30px; margin-bottom:30px;">
+          <h3>Thông tin nhận hàng</h3>
+          <?php if (!empty($errors)) { echo "<div class='alert alert-danger'><ul>"; foreach($errors as $e) echo "<li>$e</li>"; echo "</ul></div>"; } ?>
+          <form action="checkout.php" method="POST" id="checkoutForm">
+              <div class="row">
+                <div class="col-md-6">
+                  <input type="text" name="receiver_name" class="form-control" placeholder="Họ và tên" required value="<?php echo htmlspecialchars($_POST['receiver_name'] ?? $_SESSION['user_name'] ?? ''); ?>">
+                </div>
+                <div class="col-md-6">
+                  <input type="email" name="receiver_email" class="form-control" placeholder="Email" required value="<?php echo htmlspecialchars($_POST['receiver_email'] ?? ''); ?>">
+                </div>
               </div>
-              <div class="form-group">
-                  <label for="expiry_date">Ngày hết hạn</label>
-                  <input type="text" id="expiry_date" name="expiry_date" class="form-control" required placeholder="MM/YY">
+              <input type="text" name="receiver_phone" class="form-control" placeholder="Số điện thoại" required value="<?php echo htmlspecialchars($_POST['receiver_phone'] ?? ''); ?>">
+              <input type="text" name="receiver_address" class="form-control" placeholder="Địa chỉ nhận hàng" required value="<?php echo htmlspecialchars($_POST['receiver_address'] ?? ''); ?>">
+              <textarea name="note" class="form-control" placeholder="Ghi chú (nếu có)"><?php echo htmlspecialchars($_POST['note'] ?? ''); ?></textarea>
+              <div class="form-group" style="margin-top:10px;">
+                <label>Phương thức thanh toán:</label><br>
+                <label><input type="radio" name="payment_method" value="COD" <?php if(empty($_POST['payment_method']) || $_POST['payment_method']==='cod') echo 'checked'; ?>> Thanh toán khi nhận hàng (COD)</label>
+                <label style="margin-left:20px;"><input type="radio" name="payment_method" value="CARD" <?php if(!empty($_POST['payment_method']) && $_POST['payment_method']==='card') echo 'checked'; ?>> Thẻ (Credit Card)</label>
               </div>
-              <div class="form-group">
-                  <label for="cvv">CVV</label>
-                  <input type="text" id="cvv" name="cvv" class="form-control" required>
+              <!-- FORM THANH TOÁN (ẩn/hiện bằng JS) -->
+              <div id="cardInfo" style="display:<?php echo (!empty($_POST['payment_method']) && $_POST['payment_method']==='card') ? 'block':'none'; ?>; margin-top:20px;">
+                <h3>Thông tin thanh toán</h3>
+                <div class="form-group">
+                    <input type="text" id="card_number" name="card_number" class="form-control" placeholder="Số thẻ" value="<?php echo htmlspecialchars($_POST['card_number'] ?? ''); ?>">
+                </div>
+                <div class="form-group">
+                    <input type="text" id="expiry_date" name="expiry_date" class="form-control" placeholder="Ngày hết hạn (MM/YY)" value="<?php echo htmlspecialchars($_POST['expiry_date'] ?? ''); ?>">
+                </div>
+                <div class="form-group">
+                    <input type="text" id="cvv" name="cvv" class="form-control" placeholder="CVV" value="<?php echo htmlspecialchars($_POST['cvv'] ?? ''); ?>">
+                </div>
               </div>
-              <div class="form-group">
-                  <label for="total_price">Tổng cộng</label>
-                  <input type="text" id="total_price" name="total_price" class="form-control" value="<?php echo number_format($total_price, 2); ?>" readonly>
-              </div>
-              <button type="submit" class="btn btn-primary">Thanh toán</button>
+              <?php if (empty($cart_items)): ?>
+                <button type="button" class="btn btn-submit" style="margin-top:15px;" disabled>Đặt hàng</button>
+              <?php else: ?>
+                <button type="submit" class="btn btn-submit" style="margin-top:15px;">Đặt hàng</button>
+              <?php endif; ?>
           </form>
-        </div>
-        <div class="produced">
-          <a href="single.php" class="hvr-skew-backward">Produced To Buy</a>
         </div>
       </div>
     </div>
@@ -710,5 +732,54 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
     <script src="js/simpleCart.min.js"></script>
     <!-- slide -->
     <script src="js/bootstrap.min.js"></script>
+    <script>
+    // Ẩn/hiện form thanh toán thẻ
+    const radios = document.querySelectorAll('input[name="payment_method"]');
+    radios.forEach(radio => {
+      radio.addEventListener('change', function() {
+        document.getElementById('cardInfo').style.display = (this.value === 'card') ? 'block' : 'none';
+      });
+    });
+    </script>
+    <style>
+    .shipping-form {
+        background: #fff;
+        padding: 30px 30px 20px 30px;
+        border-radius: 10px;
+        box-shadow: 0 0 20px rgba(255,107,107,0.08);
+        border: 1.5px solid #ff6b6b;
+        margin-bottom: 30px;
+    }
+    .shipping-form h3 {
+        color: #f44336;
+        margin-bottom: 25px;
+        font-weight: 600;
+    }
+    .shipping-form .form-control {
+        height: 48px;
+        border-radius: 6px;
+        margin-bottom: 18px;
+        border: 1.5px solid #ffb3b3;
+        font-size: 16px;
+    }
+    .shipping-form textarea.form-control {
+        height: 110px;
+    }
+    .shipping-form .btn-submit {
+        background: #ff6b6b;
+        color: #fff;
+        padding: 12px 30px;
+        border: none;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 18px;
+        transition: all 0.3s;
+        margin-top: 10px;
+    }
+    .shipping-form .btn-submit:hover {
+        background: #ff5252;
+        transform: translateY(-2px);
+    }
+    </style>
   </body>
 </html> 

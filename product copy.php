@@ -3,40 +3,8 @@ if (session_status() == PHP_SESSION_NONE) session_start();
 require_once 'cart_total.php';
 require_once 'db.php';
 
-// Xử lý các tham số lọc và sắp xếp
-$category = $_GET['category'] ?? '';
-$gender = $_GET['gender'] ?? '';
-$sort = $_GET['sort'] ?? 'newest';
-
-// Xây dựng câu query
-$query = 'SELECT * FROM products WHERE 1=1';
-$params = [];
-
-if ($category) {
-    $query .= ' AND category = ?';
-    $params[] = $category;
-}
-
-if ($gender) {
-    $query .= ' AND gender = ?';
-    $params[] = $gender;
-}
-
-// Thêm điều kiện sắp xếp
-switch ($sort) {
-    case 'price_asc':
-        $query .= ' ORDER BY price ASC';
-        break;
-    case 'price_desc':
-        $query .= ' ORDER BY price DESC';
-        break;
-    default:
-        $query .= ' ORDER BY created_at DESC';
-}
-
-// Thực thi query
-$stmt = $pdo->prepare($query);
-$stmt->execute($params);
+// Lấy danh sách sản phẩm từ database
+$stmt = $pdo->query('SELECT * FROM products ORDER BY created_at DESC');
 $products = $stmt->fetchAll();
 
 // Xử lý thêm vào giỏ hàng
@@ -66,7 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_to_cart'])) {
                 $stmt->execute([$user_id, $product['name'], $product['image'], $product['price']]);
             }
             
-            header('Location: product.php?success=1' . ($category ? '&category=' . urlencode($category) : '') . ($gender ? '&gender=' . urlencode($gender) : '') . '&sort=' . urlencode($sort));
+            header('Location: product.php?success=1');
             exit;
         }
     } else {
@@ -74,14 +42,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_to_cart'])) {
         exit;
     }
 }
-
-// Lấy danh sách danh mục từ database
-$stmt = $pdo->query('SELECT DISTINCT category FROM products ORDER BY category');
-$navbar_categories = $stmt->fetchAll(PDO::FETCH_COLUMN);
-
-// Lấy danh sách giới tính từ database
-$stmt = $pdo->query('SELECT DISTINCT gender FROM products ORDER BY gender');
-$genders = $stmt->fetchAll(PDO::FETCH_COLUMN);
 ?>
 <!--A Design by W3layouts 
 Author: W3layout
@@ -254,31 +214,6 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
 .alert {
     margin-bottom: 20px;
 }
-.no-products {
-    text-align: center;
-    padding: 50px 0;
-    color: #666;
-}
-/* Thêm style cho dropdown menu Product */
-.navbar-nav > .dropdown:hover > .dropdown-menu {
-    display: block;
-    margin-top: 0;
-}
-.dropdown-menu {
-    min-width: 180px;
-    border-radius: 6px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    padding: 10px 0;
-}
-.dropdown-menu > li > a {
-    padding: 8px 20px;
-    color: #333;
-    transition: background 0.2s;
-}
-.dropdown-menu > li > a:hover {
-    background: #f5f5f5;
-    color: #ff6b6b;
-}
 </style>
 </head>
 <body>
@@ -342,15 +277,138 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
     <div class="collapse navbar-collapse" id="bs-megadropdown-tabs">
         <ul class="nav navbar-nav nav_1">
             <li><a class="color" href="index.php">Home</a></li>
-            <li class="dropdown mega-dropdown">
-                <a href="#" class="color dropdown-toggle" data-toggle="dropdown">Product <span class="caret"></span></a>
-                <ul class="dropdown-menu">
-                    <?php foreach ($navbar_categories as $cat): ?>
-                        <li><a href="product.php?category=<?php echo urlencode($cat); ?>"> <?php echo htmlspecialchars($cat); ?> </a></li>
-                    <?php endforeach; ?>
-                </ul>
-            </li>
-            <li><a class="color4" href="404.php">About</a></li>
+            
+    		<li class="dropdown mega-dropdown active">
+			    <a class="color1" href="#" class="dropdown-toggle" data-toggle="dropdown">Women<span class="caret"></span></a>				
+				<div class="dropdown-menu ">
+                    <div class="menu-top">
+						<div class="col1">
+							<div class="h_nav">
+								<h4>Submenu1</h4>
+									<ul>
+										<li><a href="product.php">Accessories</a></li>
+										<li><a href="product.php">Bags</a></li>
+										<li><a href="product.php">Caps & Hats</a></li>
+										<li><a href="product.php">Hoodies & Sweatshirts</a></li>
+										
+									</ul>	
+							</div>							
+						</div>
+						<div class="col1">
+							<div class="h_nav">
+								<h4>Submenu2</h4>
+								<ul>
+										<li><a href="product.php">Jackets & Coats</a></li>
+										<li><a href="product.php">Jeans</a></li>
+										<li><a href="product.php">Jewellery</a></li>
+										<li><a href="product.php">Jumpers & Cardigans</a></li>
+										<li><a href="product.php">Leather Jackets</a></li>
+										<li><a href="product.php">Long Sleeve T-Shirts</a></li>
+									</ul>	
+							</div>							
+						</div>
+						<div class="col1">
+							<div class="h_nav">
+								<h4>Submenu3</h4>
+									<ul>
+										<li><a href="product.php">Shirts</a></li>
+										<li><a href="product.php">Shoes, Boots & Trainers</a></li>
+										<li><a href="product.php">Sunglasses</a></li>
+										<li><a href="product.php">Sweatpants</a></li>
+										<li><a href="product.php">Swimwear</a></li>
+										<li><a href="product.php">Trousers & Chinos</a></li>
+										
+									</ul>	
+								
+							</div>							
+						</div>
+						<div class="col1">
+							<div class="h_nav">
+								<h4>Submenu4</h4>
+								<ul>
+									<li><a href="product.php">T-Shirts</a></li>
+									<li><a href="product.php">Underwear & Socks</a></li>
+									<li><a href="product.php">Vests</a></li>
+									<li><a href="product.php">Jackets & Coats</a></li>
+									<li><a href="product.php">Jeans</a></li>
+									<li><a href="product.php">Jewellery</a></li>
+								</ul>	
+							</div>							
+						</div>
+						<div class="col1 col5">
+						<img src="images/me.png" class="img-responsive" alt="">
+						</div>
+						<div class="clearfix"></div>
+					</div>                  
+				</div>				
+			</li>
+			<li class="dropdown mega-dropdown active">
+			    <a class="color2" href="#" class="dropdown-toggle" data-toggle="dropdown">Men<span class="caret"></span></a>				
+				<div class="dropdown-menu mega-dropdown-menu">
+                    <div class="menu-top">
+						<div class="col1">
+							<div class="h_nav">
+								<h4>Submenu1</h4>
+									<ul>
+										<li><a href="product.php">Accessories</a></li>
+										<li><a href="product.php">Bags</a></li>
+										<li><a href="product.php">Caps & Hats</a></li>
+										<li><a href="product.php">Hoodies & Sweatshirts</a></li>
+										
+									</ul>	
+							</div>							
+						</div>
+						<div class="col1">
+							<div class="h_nav">
+								<h4>Submenu2</h4>
+								<ul>
+										<li><a href="product.php">Jackets & Coats</a></li>
+										<li><a href="product.php">Jeans</a></li>
+										<li><a href="product.php">Jewellery</a></li>
+										<li><a href="product.php">Jumpers & Cardigans</a></li>
+										<li><a href="product.php">Leather Jackets</a></li>
+										<li><a href="product.php">Long Sleeve T-Shirts</a></li>
+									</ul>	
+							</div>							
+						</div>
+						<div class="col1">
+							<div class="h_nav">
+								<h4>Submenu3</h4>
+								
+<ul>
+										<li><a href="product.php">Shirts</a></li>
+										<li><a href="product.php">Shoes, Boots & Trainers</a></li>
+										<li><a href="product.php">Sunglasses</a></li>
+										<li><a href="product.php">Sweatpants</a></li>
+										<li><a href="product.php">Swimwear</a></li>
+										<li><a href="product.php">Trousers & Chinos</a></li>
+										
+									</ul>	
+								
+							</div>							
+						</div>
+						<div class="col1">
+							<div class="h_nav">
+								<h4>Submenu4</h4>
+								<ul>
+									<li><a href="product.php">T-Shirts</a></li>
+									<li><a href="product.php">Underwear & Socks</a></li>
+									<li><a href="product.php">Vests</a></li>
+									<li><a href="product.php">Jackets & Coats</a></li>
+									<li><a href="product.php">Jeans</a></li>
+									<li><a href="product.php">Jewellery</a></li>
+								</ul>	
+							</div>							
+						</div>
+						<div class="col1 col5">
+						<img src="images/me1.png" class="img-responsive" alt="">
+						</div>
+						<div class="clearfix"></div>
+					</div>                  
+				</div>				
+			</li>
+			<li><a class="color3" href="product.php">Sale</a></li>
+			<li><a class="color4" href="404.php">About</a></li>
             <li><a class="color5" href="typo.php">Short Codes</a></li>
             <li ><a class="color6" href="contact.php">Contact</a></li>
         </ul>
@@ -444,30 +502,25 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
 									<label>Danh mục</label>
 									<select name="category" class="form-control">
 										<option value="">Tất cả</option>
-										<?php foreach ($navbar_categories as $cat): ?>
-											<option value="<?php echo htmlspecialchars($cat); ?>" <?php echo $category === $cat ? 'selected' : ''; ?>>
-												<?php echo htmlspecialchars($cat); ?>
-											</option>
-										<?php endforeach; ?>
+										<option value="Shirt">Áo sơ mi</option>
+										<option value="T-Shirt">Áo thun</option>
 									</select>
 								</div>
 								<div class="filter-group">
 									<label>Giới tính</label>
 									<select name="gender" class="form-control">
 										<option value="">Tất cả</option>
-										<?php foreach ($genders as $gen): ?>
-											<option value="<?php echo htmlspecialchars($gen); ?>" <?php echo $gender === $gen ? 'selected' : ''; ?>>
-												<?php echo htmlspecialchars($gen); ?>
-											</option>
-										<?php endforeach; ?>
+										<option value="Men">Nam</option>
+										<option value="Women">Nữ</option>
+										<option value="Kids">Trẻ em</option>
 									</select>
 								</div>
 								<div class="filter-group">
 									<label>Sắp xếp theo</label>
 									<select name="sort" class="form-control">
-										<option value="newest" <?php echo $sort === 'newest' ? 'selected' : ''; ?>>Mới nhất</option>
-										<option value="price_asc" <?php echo $sort === 'price_asc' ? 'selected' : ''; ?>>Giá tăng dần</option>
-										<option value="price_desc" <?php echo $sort === 'price_desc' ? 'selected' : ''; ?>>Giá giảm dần</option>
+										<option value="newest">Mới nhất</option>
+										<option value="price_asc">Giá tăng dần</option>
+										<option value="price_desc">Giá giảm dần</option>
 									</select>
 								</div>
 								<button type="submit" class="btn btn-primary btn-block">Lọc</button>
@@ -477,39 +530,32 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
 
 					<!-- Products grid -->
 					<div class="col-md-9">
-						<?php if (empty($products)): ?>
-							<div class="no-products">
-								<h3>Không tìm thấy sản phẩm nào</h3>
-								<p>Vui lòng thử lại với bộ lọc khác</p>
-							</div>
-						<?php else: ?>
-							<div class="row">
-								<?php foreach ($products as $product): ?>
-								<div class="col-md-4 product-grid">
-									<div class="product-item">
-										<div class="product-image">
-											<img src="<?php echo htmlspecialchars($product['image']); ?>" alt="<?php echo htmlspecialchars($product['name']); ?>">
-											<div class="product-overlay">
-												<a href="single.php?id=<?php echo $product['id']; ?>">Chi tiết</a>
-												<form method="post" style="display: inline;">
-													<input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">
-													<button type="submit" name="add_to_cart" class="btn btn-primary">Thêm vào giỏ</button>
-												</form>
-											</div>
+						<div class="row">
+							<?php foreach ($products as $product): ?>
+							<div class="col-md-4 product-grid">
+								<div class="product-item">
+									<div class="product-image">
+										<img src="<?php echo htmlspecialchars($product['image']); ?>" alt="<?php echo htmlspecialchars($product['name']); ?>">
+										<div class="product-overlay">
+											<a href="single.php?id=<?php echo $product['id']; ?>">Chi tiết</a>
+											<form method="post" style="display: inline;">
+												<input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">
+												<button type="submit" name="add_to_cart" class="btn btn-primary">Thêm vào giỏ</button>
+											</form>
 										</div>
-										<div class="product-info">
-											<div class="product-category"><?php echo htmlspecialchars($product['category']); ?></div>
-											<h3 class="product-title"><?php echo htmlspecialchars($product['name']); ?></h3>
-											<div class="product-price">
-												<span class="old-price"><?php echo number_format($product['price'] * 1.2, 0); ?>đ</span>
-												<?php echo number_format($product['price'], 0); ?>đ
-											</div>
+									</div>
+									<div class="product-info">
+										<div class="product-category"><?php echo htmlspecialchars($product['category']); ?></div>
+										<h3 class="product-title"><?php echo htmlspecialchars($product['name']); ?></h3>
+										<div class="product-price">
+											<span class="old-price"><?php echo number_format($product['price'] * 1.2, 0); ?>đ</span>
+											<?php echo number_format($product['price'], 0); ?>đ
 										</div>
 									</div>
 								</div>
-								<?php endforeach; ?>
 							</div>
-						<?php endif; ?>
+							<?php endforeach; ?>
+						</div>
 					</div>
 				</div>
 			</div>

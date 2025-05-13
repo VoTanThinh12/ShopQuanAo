@@ -1,8 +1,18 @@
 <?php
 if (session_status() == PHP_SESSION_NONE) session_start();
 require_once 'cart_total.php';
+require_once 'db.php';
 
-$user_id = $_SESSION['user_id'] ?? 0;
+// Yêu cầu đăng nhập trước khi vào trang liên hệ
+if (empty($_SESSION['user_id'])) {
+    header('Location: login.php?redirect=contact.php');
+    exit;
+}
+
+$user_id = $_SESSION['user_id'];
+$user_name = $_SESSION['user_name'] ?? '';
+$user_email = $_SESSION['user_email'] ?? '';
+$user_phone = $_SESSION['user_phone'] ?? '';
 $total_price = 0;
 if ($user_id) {
     $stmt = $pdo->prepare('SELECT * FROM cart WHERE user_id = ?');
@@ -10,6 +20,34 @@ if ($user_id) {
     $cart_items = $stmt->fetchAll();
     foreach ($cart_items as $item) {
         $total_price += $item['price'] * $item['quantity'];
+    }
+}
+
+$stmt = $pdo->query('SELECT DISTINCT category FROM products ORDER BY category');
+$navbar_categories = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
+// Xử lý form liên hệ
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $name = $user_name;
+    $email = $_POST['email'] ?? $user_email;
+    $phone = $_POST['phone'] ?? $user_phone;
+    $message = $_POST['message'] ?? '';
+    $errors = [];
+
+    // Validate
+    if (empty($message)) $errors[] = 'Vui lòng nhập nội dung tin nhắn';
+    if (empty($email)) $errors[] = 'Vui lòng nhập email';
+    if (empty($phone)) $errors[] = 'Vui lòng nhập số điện thoại';
+
+    if (empty($errors)) {
+        // Lưu vào bảng feedback
+        $stmt = $pdo->prepare('INSERT INTO feedback (user_id, name, email, phone, message, created_at) VALUES (?, ?, ?, ?, ?, NOW())');
+        $ok = $stmt->execute([$user_id, $name, $email, $phone, $message]);
+        if ($ok) {
+            $success = 'Cảm ơn bạn đã liên hệ. Chúng tôi sẽ phản hồi sớm nhất có thể!';
+        } else {
+            $errors[] = 'Có lỗi xảy ra, vui lòng thử lại sau.';
+        }
     }
 }
 ?>
@@ -22,7 +60,7 @@ License URL: http://creativecommons.org/licenses/by/3.0/
 <!DOCTYPE html>
 <html>
 <head>
-<title>Shopin A Ecommerce Category Flat Bootstrap Responsive Website Template | Contact :: w3layouts</title>
+<title>Liên hệ - ShopQuanAo</title>
 <link href="css/bootstrap.css" rel="stylesheet" type="text/css" media="all" />
 <!-- Custom Theme files -->
 <!--theme-style-->
@@ -62,6 +100,113 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
 		});
 		</script>
 <!---//End-rate---->
+<style>
+.contact-section {
+    padding: 60px 0;
+    background: #f8f9fa;
+}
+.contact-info {
+    background: #fff;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.1);
+    margin-bottom: 30px;
+}
+.contact-info h3 {
+    color: #333;
+    margin-bottom: 20px;
+    font-weight: 600;
+}
+.contact-info ul li {
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+}
+.contact-info ul li i {
+    margin-right: 10px;
+    color: #ff6b6b;
+    font-size: 20px;
+}
+.contact-form {
+    background: #fff;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.1);
+}
+.form-control {
+    height: 50px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+}
+textarea.form-control {
+    height: 150px;
+}
+.btn-submit {
+    background: #ff6b6b;
+    color: #fff;
+    padding: 12px 30px;
+    border: none;
+    border-radius: 5px;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+.btn-submit:hover {
+    background: #ff5252;
+    transform: translateY(-2px);
+}
+.social-links {
+    margin-top: 20px;
+}
+.social-links a {
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    line-height: 40px;
+    text-align: center;
+    background: #f8f9fa;
+    border-radius: 50%;
+    margin-right: 10px;
+    color: #333;
+    transition: all 0.3s;
+}
+.social-links a:hover {
+    background: #ff6b6b;
+    color: #fff;
+}
+.map-container {
+    height: 400px;
+    margin-top: 50px;
+}
+.map-container iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    border-radius: 10px;
+}
+.alert {
+    border-radius: 5px;
+    margin-bottom: 20px;
+}
+.navbar-nav > .dropdown:hover > .dropdown-menu {
+    display: block;
+    margin-top: 0;
+}
+.dropdown-menu {
+    min-width: 180px;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    padding: 10px 0;
+}
+.dropdown-menu > li > a {
+    padding: 8px 20px;
+    color: #333;
+    transition: background 0.2s;
+}
+.dropdown-menu > li > a:hover {
+    background: #f5f5f5;
+    color: #ff6b6b;
+}
+</style>
 </head>
 <body>
 <!--header-->
@@ -124,138 +269,15 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
     <div class="collapse navbar-collapse" id="bs-megadropdown-tabs">
         <ul class="nav navbar-nav nav_1">
             <li><a class="color" href="index.php">Home</a></li>
-            
-    		<li class="dropdown mega-dropdown active">
-			    <a class="color1" href="#" class="dropdown-toggle" data-toggle="dropdown">Women<span class="caret"></span></a>				
-				<div class="dropdown-menu ">
-                    <div class="menu-top">
-						<div class="col1">
-							<div class="h_nav">
-								<h4>Submenu1</h4>
-									<ul>
-										<li><a href="product.php">Accessories</a></li>
-										<li><a href="product.php">Bags</a></li>
-										<li><a href="product.php">Caps & Hats</a></li>
-										<li><a href="product.php">Hoodies & Sweatshirts</a></li>
-										
-									</ul>	
-							</div>							
-						</div>
-						<div class="col1">
-							<div class="h_nav">
-								<h4>Submenu2</h4>
-								<ul>
-										<li><a href="product.php">Jackets & Coats</a></li>
-										<li><a href="product.php">Jeans</a></li>
-										<li><a href="product.php">Jewellery</a></li>
-										<li><a href="product.php">Jumpers & Cardigans</a></li>
-										<li><a href="product.php">Leather Jackets</a></li>
-										<li><a href="product.php">Long Sleeve T-Shirts</a></li>
-									</ul>	
-							</div>							
-						</div>
-						<div class="col1">
-							<div class="h_nav">
-								<h4>Submenu3</h4>
-									<ul>
-										<li><a href="product.php">Shirts</a></li>
-										<li><a href="product.php">Shoes, Boots & Trainers</a></li>
-										<li><a href="product.php">Sunglasses</a></li>
-										<li><a href="product.php">Sweatpants</a></li>
-										<li><a href="product.php">Swimwear</a></li>
-										<li><a href="product.php">Trousers & Chinos</a></li>
-										
-									</ul>	
-								
-							</div>							
-						</div>
-						<div class="col1">
-							<div class="h_nav">
-								<h4>Submenu4</h4>
-								<ul>
-									<li><a href="product.php">T-Shirts</a></li>
-									<li><a href="product.php">Underwear & Socks</a></li>
-									<li><a href="product.php">Vests</a></li>
-									<li><a href="product.php">Jackets & Coats</a></li>
-									<li><a href="product.php">Jeans</a></li>
-									<li><a href="product.php">Jewellery</a></li>
-								</ul>	
-							</div>							
-						</div>
-						<div class="col1 col5">
-						<img src="images/me.png" class="img-responsive" alt="">
-						</div>
-						<div class="clearfix"></div>
-					</div>                  
-				</div>				
-			</li>
-			<li class="dropdown mega-dropdown active">
-			    <a class="color2" href="#" class="dropdown-toggle" data-toggle="dropdown">Men<span class="caret"></span></a>				
-				<div class="dropdown-menu mega-dropdown-menu">
-                    <div class="menu-top">
-						<div class="col1">
-							<div class="h_nav">
-								<h4>Submenu1</h4>
-									<ul>
-										<li><a href="product.php">Accessories</a></li>
-										<li><a href="product.php">Bags</a></li>
-										<li><a href="product.php">Caps & Hats</a></li>
-										<li><a href="product.php">Hoodies & Sweatshirts</a></li>
-										
-									</ul>	
-							</div>							
-						</div>
-						<div class="col1">
-							<div class="h_nav">
-								<h4>Submenu2</h4>
-								<ul>
-										<li><a href="product.php">Jackets & Coats</a></li>
-										<li><a href="product.php">Jeans</a></li>
-										<li><a href="product.php">Jewellery</a></li>
-										<li><a href="product.php">Jumpers & Cardigans</a></li>
-										<li><a href="product.php">Leather Jackets</a></li>
-										<li><a href="product.php">Long Sleeve T-Shirts</a></li>
-									</ul>	
-							</div>							
-						</div>
-						<div class="col1">
-							<div class="h_nav">
-								<h4>Submenu3</h4>
-								
-<ul>
-										<li><a href="product.php">Shirts</a></li>
-										<li><a href="product.php">Shoes, Boots & Trainers</a></li>
-										<li><a href="product.php">Sunglasses</a></li>
-										<li><a href="product.php">Sweatpants</a></li>
-										<li><a href="product.php">Swimwear</a></li>
-										<li><a href="product.php">Trousers & Chinos</a></li>
-										
-									</ul>	
-								
-							</div>							
-						</div>
-						<div class="col1">
-							<div class="h_nav">
-								<h4>Submenu4</h4>
-								<ul>
-									<li><a href="product.php">T-Shirts</a></li>
-									<li><a href="product.php">Underwear & Socks</a></li>
-									<li><a href="product.php">Vests</a></li>
-									<li><a href="product.php">Jackets & Coats</a></li>
-									<li><a href="product.php">Jeans</a></li>
-									<li><a href="product.php">Jewellery</a></li>
-								</ul>	
-							</div>							
-						</div>
-						<div class="col1 col5">
-						<img src="images/me1.png" class="img-responsive" alt="">
-						</div>
-						<div class="clearfix"></div>
-					</div>                  
-				</div>				
-			</li>
-			<li><a class="color3" href="product.php">Sale</a></li>
-			<li><a class="color4" href="404.php">About</a></li>
+            <li class="dropdown mega-dropdown">
+                <a href="#" class="color dropdown-toggle" data-toggle="dropdown">Product <span class="caret"></span></a>
+                <ul class="dropdown-menu">
+                    <?php foreach ($navbar_categories as $cat): ?>
+                        <li><a href="product.php?category=<?php echo urlencode($cat); ?>"> <?php echo htmlspecialchars($cat); ?> </a></li>
+                    <?php endforeach; ?>
+                </ul>
+            </li>
+            <li><a class="color4" href="404.php">About</a></li>
             <li><a class="color5" href="typo.php">Short Codes</a></li>
             <li ><a class="color6" href="contact.php">Contact</a></li>
         </ul>
@@ -325,92 +347,84 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
 <!--banner-->
 <div class="banner-top">
 	<div class="container">
-		<h1>Contact</h1>
+		<h1>Liên hệ</h1>
 		<em></em>
-		<h2><a href="index.php">Home</a><label>/</label>Contact</h2>
+		<h2><a href="index.php">Trang chủ</a><label>/</label>Liên hệ</h2>
 	</div>
 </div>
 <!--contact-->
-	<div class="page-head">
+	<!-- <div class="page-head">
 		<div class="container">
 			<h3>Contact Us</h3>
 		</div>
-	</div>
+	</div> -->
 	<!--contact-->
-		<div class="contact">
+		<div class="contact-section">
 			<div class="container">
-				<div class="contact-top">
-					<h2>Contact</h2>
-					<label></label>
-				</div>
-				<div class="contact-text">
-					<div class="col-md-4 contact-left">
-						<div class="cont">
-							<h3>Contact Info</h3>
+				<?php if (!empty($success)): ?>
+					<div class="alert alert-success">
+						<?php echo htmlspecialchars($success); ?>
+					</div>
+				<?php endif; ?>
+
+				<?php if (!empty($errors)): ?>
+					<div class="alert alert-danger">
+						<ul class="mb-0">
+							<?php foreach ($errors as $error): ?>
+								<li><?php echo htmlspecialchars($error); ?></li>
+							<?php endforeach; ?>
+						</ul>
+					</div>
+				<?php endif; ?>
+
+				<div class="row">
+					<div class="col-md-4">
+						<div class="contact-info">
+							<h3>Thông tin liên hệ</h3>
 							<ul>
-								<li><span class="glyphicon glyphicon-map-marker" aria-hidden="true"></span>1234k Avenue, 4th block, 3FB, New Jersey.</li>
-								<li><span class="glyphicon glyphicon-envelope" aria-hidden="true"></span><a href="mailto:info@example.com">info@example.com</a></li>
-								<li><span class="glyphicon glyphicon-earphone" aria-hidden="true"></span>+1 234 567 8901</li>
+								<li>
+									<i class="glyphicon glyphicon-map-marker"></i>
+									<span>123 Đường ABC, Quận XYZ, TP.HCM</span>
+								</li>
+								<li>
+									<i class="glyphicon glyphicon-envelope"></i>
+									<span>contact@shopquanao.com</span>
+								</li>
+								<li>
+									<i class="glyphicon glyphicon-earphone"></i>
+									<span>+84 123 456 789</span>
+								</li>
 							</ul>
-						</div>
-						<div class="cont">
-							<h3>Follow Us</h3>
-							<div class="social">
-								<ul>
-									<li><a class="facebook" href="#"></a></li>
-									<li><a class="facebook in" href="#"></a></li>
-									<li><a class="facebook twitter" href="#"></a></li>
-									<li><a class="facebook chrome" href="#"></a></li>
-								</ul>
+							<div class="social-links">
+								<a href="#"><i class="fa fa-facebook"></i></a>
+								<a href="#"><i class="fa fa-twitter"></i></a>
+								<a href="#"><i class="fa fa-instagram"></i></a>
+								<a href="#"><i class="fa fa-youtube"></i></a>
 							</div>
 						</div>
 					</div>
-					<div class="col-md-8 contact-right">
-						<div class="container">
-							<div class="login">
-								<?php if (!empty(
-									$errors ?? [])): ?>
-									<div class="alert alert-danger">
-										<ul>
-											<?php foreach (($errors ?? []) as $e): ?>
-												<li><?php echo htmlspecialchars($e); ?></li>
-											<?php endforeach; ?>
-										</ul>
+					<div class="col-md-8">
+						<div class="contact-form">
+							<h3>Gửi tin nhắn cho chúng tôi</h3>
+							<form method="post" action="contact.php">
+								<div class="row">
+									<div class="col-md-6">
+										<input type="text" name="name" class="form-control" placeholder="Họ và tên" required value="<?php echo htmlspecialchars($user_name); ?>" readonly>
 									</div>
-								<?php endif; ?>
-								<form action="contact.php" method="post">
-									<div class="col-md-6 login-do">
-										<div class="login-mail">
-											<input type="text" name="name" placeholder="Name" required value="<?php echo htmlspecialchars($name ?? ''); ?>">
-											<i class="glyphicon glyphicon-user"></i>
-										</div>
-										<div class="login-mail">
-											<input type="text" name="email" placeholder="Email" required value="<?php echo htmlspecialchars($email ?? ''); ?>">
-											<i class="glyphicon glyphicon-envelope"></i>
-										</div>
-										<div class="login-mail">
-											<input type="text" name="phone" placeholder="Phone" required value="<?php echo htmlspecialchars($phone ?? ''); ?>">
-											<i class="glyphicon glyphicon-earphone"></i>
-										</div>
-										<div class="login-mail">
-											<textarea name="message" placeholder="Message" required><?php echo htmlspecialchars($message ?? ''); ?></textarea>
-											<i class="glyphicon glyphicon-pencil"></i>
-										</div>
-										<label class="hvr-skew-backward">
-											<input type="submit" value="Send">
-										</label>
+									<div class="col-md-6">
+										<input type="email" name="email" class="form-control" placeholder="Email" required value="<?php echo htmlspecialchars($user_email); ?>">
 									</div>
-									<div class="col-md-6 login-right">
-										<h3>Contact Our Team</h3>
-										<p>Hãy liên hệ với chúng tôi nếu bạn có bất kỳ thắc mắc hoặc góp ý nào. Đội ngũ Shopin sẽ phản hồi bạn trong thời gian sớm nhất!</p>
-										<a href="index.php" class="hvr-skew-backward">Về trang chủ</a>
-									</div>
-									<div class="clearfix"></div>
-								</form>
-							</div>
+								</div>
+								<input type="tel" name="phone" class="form-control" placeholder="Số điện thoại" required value="<?php echo htmlspecialchars($user_phone); ?>">
+								<textarea name="message" class="form-control" placeholder="Nội dung tin nhắn" required></textarea>
+								<button type="submit" class="btn btn-submit">Gửi tin nhắn</button>
+							</form>
 						</div>
 					</div>
-					<div class="clearfix"></div>
+				</div>
+
+				<div class="map-container">
+					<iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3919.424167650401!2d106.6981!3d10.7756!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMTDCsDQ2JzMyLjEiTiAxMDbCsDQxJzUzLjIiRQ!5e0!3m2!1svi!2s!4v1620000000000!5m2!1svi!2s" allowfullscreen></iframe>
 				</div>
 			</div>
 		</div>

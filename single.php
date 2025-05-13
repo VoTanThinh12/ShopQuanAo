@@ -1,6 +1,50 @@
 <?php
 if (session_status() == PHP_SESSION_NONE) session_start();
 require_once 'cart_total.php';
+require_once 'db.php';
+
+// Lấy thông tin sản phẩm từ database
+$product_id = $_GET['id'] ?? 0;
+$stmt = $pdo->prepare('SELECT * FROM products WHERE id = ?');
+$stmt->execute([$product_id]);
+$product = $stmt->fetch();
+
+if (!$product) {
+    header('Location: product.php');
+    exit;
+}
+
+// Xử lý thêm vào giỏ hàng
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_to_cart'])) {
+    $user_id = $_SESSION['user_id'] ?? 0;
+    $quantity = isset($_POST['quantity']) ? max(1, (int)$_POST['quantity']) : 1;
+    
+    if ($user_id) {
+        // Kiểm tra sản phẩm đã có trong giỏ hàng chưa
+        $stmt = $pdo->prepare('SELECT * FROM cart WHERE user_id = ? AND product_name = ?');
+        $stmt->execute([$user_id, $product['name']]);
+        $cart_item = $stmt->fetch();
+        
+        if ($cart_item) {
+            // Cập nhật số lượng
+            $stmt = $pdo->prepare('UPDATE cart SET quantity = quantity + ? WHERE id = ?');
+            $stmt->execute([$quantity, $cart_item['id']]);
+        } else {
+            // Thêm mới vào giỏ hàng
+            $stmt = $pdo->prepare('INSERT INTO cart (user_id, product_name, product_image, price, quantity) VALUES (?, ?, ?, ?, ?)');
+            $stmt->execute([$user_id, $product['name'], $product['image'], $product['price'], $quantity]);
+        }
+        
+        header('Location: single.php?id=' . $product_id . '&success=1');
+        exit;
+    } else {
+        header('Location: login.php');
+        exit;
+    }
+}
+
+$stmt = $pdo->query('SELECT DISTINCT category FROM products ORDER BY category');
+$navbar_categories = $stmt->fetchAll(PDO::FETCH_COLUMN);
 ?>
 <!--A Design by W3layouts 
 Author: W3layout
@@ -11,7 +55,7 @@ License URL: http://creativecommons.org/licenses/by/3.0/
 <!DOCTYPE html>
 <html>
 <head>
-<title>Shopin A Ecommerce Category Flat Bootstrap Responsive Website Template | Single :: w3layouts</title>
+<title><?php echo htmlspecialchars($product['name']); ?> - ShopQuanAo</title>
 <link href="css/bootstrap.css" rel="stylesheet" type="text/css" media="all" />
 <!-- Custom Theme files -->
 <!--theme-style-->
@@ -51,6 +95,143 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
 		});
 		</script>
 <!---//End-rate---->
+<style>
+.product-detail {
+    padding: 30px 0;
+}
+.product-images {
+    position: relative;
+    margin-bottom: 30px;
+}
+.main-image {
+    width: 100%;
+    height: 400px;
+    object-fit: cover;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+.thumbnail-images {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+.thumbnail {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+.thumbnail:hover {
+    transform: scale(1.05);
+}
+.product-info {
+    padding: 20px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+.product-title {
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 15px;
+    color: #333;
+}
+.product-category {
+    color: #666;
+    font-size: 16px;
+    margin-bottom: 10px;
+}
+.product-price {
+    font-size: 28px;
+    color: #ff6b6b;
+    font-weight: 600;
+    margin: 20px 0;
+}
+.product-price .old-price {
+    color: #999;
+    text-decoration: line-through;
+    font-size: 18px;
+    margin-right: 10px;
+}
+.product-description {
+    color: #666;
+    line-height: 1.6;
+    margin-bottom: 20px;
+}
+.quantity-selector {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+}
+.quantity-selector button {
+    width: 40px;
+    height: 40px;
+    border: 1px solid #ddd;
+    background: #fff;
+    font-size: 18px;
+    cursor: pointer;
+}
+.quantity-selector input {
+    width: 60px;
+    height: 40px;
+    border: 1px solid #ddd;
+    text-align: center;
+    margin: 0 10px;
+}
+.add-to-cart {
+    background: #ff6b6b;
+    color: #fff;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 100%;
+}
+.add-to-cart:hover {
+    background: #ff5252;
+}
+.product-meta {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+}
+.meta-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    color: #666;
+}
+.meta-item i {
+    margin-right: 10px;
+    color: #ff6b6b;
+}
+.alert {
+    margin-bottom: 20px;
+}
+.navbar-nav > .dropdown:hover > .dropdown-menu {
+    display: block;
+    margin-top: 0;
+}
+.dropdown-menu {
+    min-width: 180px;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    padding: 10px 0;
+}
+.dropdown-menu > li > a {
+    padding: 8px 20px;
+    color: #333;
+    transition: background 0.2s;
+}
+.dropdown-menu > li > a:hover {
+    background: #f5f5f5;
+    color: #ff6b6b;
+}
+</style>
 </head>
 <body>
 <!--header-->
@@ -113,138 +294,15 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
     <div class="collapse navbar-collapse" id="bs-megadropdown-tabs">
         <ul class="nav navbar-nav nav_1">
             <li><a class="color" href="index.php">Home</a></li>
-            
-    		<li class="dropdown mega-dropdown active">
-			    <a class="color1" href="#" class="dropdown-toggle" data-toggle="dropdown">Women<span class="caret"></span></a>				
-				<div class="dropdown-menu ">
-                    <div class="menu-top">
-						<div class="col1">
-							<div class="h_nav">
-								<h4>Submenu1</h4>
-									<ul>
-										<li><a href="product.php">Accessories</a></li>
-										<li><a href="product.php">Bags</a></li>
-										<li><a href="product.php">Caps & Hats</a></li>
-										<li><a href="product.php">Hoodies & Sweatshirts</a></li>
-										
-									</ul>	
-							</div>							
-						</div>
-						<div class="col1">
-							<div class="h_nav">
-								<h4>Submenu2</h4>
-								<ul>
-										<li><a href="product.php">Jackets & Coats</a></li>
-										<li><a href="product.php">Jeans</a></li>
-										<li><a href="product.php">Jewellery</a></li>
-										<li><a href="product.php">Jumpers & Cardigans</a></li>
-										<li><a href="product.php">Leather Jackets</a></li>
-										<li><a href="product.php">Long Sleeve T-Shirts</a></li>
-									</ul>	
-							</div>							
-						</div>
-						<div class="col1">
-							<div class="h_nav">
-								<h4>Submenu3</h4>
-									<ul>
-										<li><a href="product.php">Shirts</a></li>
-										<li><a href="product.php">Shoes, Boots & Trainers</a></li>
-										<li><a href="product.php">Sunglasses</a></li>
-										<li><a href="product.php">Sweatpants</a></li>
-										<li><a href="product.php">Swimwear</a></li>
-										<li><a href="product.php">Trousers & Chinos</a></li>
-										
-									</ul>	
-								
-							</div>							
-						</div>
-						<div class="col1">
-							<div class="h_nav">
-								<h4>Submenu4</h4>
-								<ul>
-									<li><a href="product.php">T-Shirts</a></li>
-									<li><a href="product.php">Underwear & Socks</a></li>
-									<li><a href="product.php">Vests</a></li>
-									<li><a href="product.php">Jackets & Coats</a></li>
-									<li><a href="product.php">Jeans</a></li>
-									<li><a href="product.php">Jewellery</a></li>
-								</ul>	
-							</div>							
-						</div>
-						<div class="col1 col5">
-						<img src="images/me.png" class="img-responsive" alt="">
-						</div>
-						<div class="clearfix"></div>
-					</div>                  
-				</div>				
-			</li>
-			<li class="dropdown mega-dropdown active">
-			    <a class="color2" href="#" class="dropdown-toggle" data-toggle="dropdown">Men<span class="caret"></span></a>				
-				<div class="dropdown-menu mega-dropdown-menu">
-                    <div class="menu-top">
-						<div class="col1">
-							<div class="h_nav">
-								<h4>Submenu1</h4>
-									<ul>
-										<li><a href="product.php">Accessories</a></li>
-										<li><a href="product.php">Bags</a></li>
-										<li><a href="product.php">Caps & Hats</a></li>
-										<li><a href="product.php">Hoodies & Sweatshirts</a></li>
-										
-									</ul>	
-							</div>							
-						</div>
-						<div class="col1">
-							<div class="h_nav">
-								<h4>Submenu2</h4>
-								<ul>
-										<li><a href="product.php">Jackets & Coats</a></li>
-										<li><a href="product.php">Jeans</a></li>
-										<li><a href="product.php">Jewellery</a></li>
-										<li><a href="product.php">Jumpers & Cardigans</a></li>
-										<li><a href="product.php">Leather Jackets</a></li>
-										<li><a href="product.php">Long Sleeve T-Shirts</a></li>
-									</ul>	
-							</div>							
-						</div>
-						<div class="col1">
-							<div class="h_nav">
-								<h4>Submenu3</h4>
-								
-<ul>
-										<li><a href="product.php">Shirts</a></li>
-										<li><a href="product.php">Shoes, Boots & Trainers</a></li>
-										<li><a href="product.php">Sunglasses</a></li>
-										<li><a href="product.php">Sweatpants</a></li>
-										<li><a href="product.php">Swimwear</a></li>
-										<li><a href="product.php">Trousers & Chinos</a></li>
-										
-									</ul>	
-								
-							</div>							
-						</div>
-						<div class="col1">
-							<div class="h_nav">
-								<h4>Submenu4</h4>
-								<ul>
-									<li><a href="product.php">T-Shirts</a></li>
-									<li><a href="product.php">Underwear & Socks</a></li>
-									<li><a href="product.php">Vests</a></li>
-									<li><a href="product.php">Jackets & Coats</a></li>
-									<li><a href="product.php">Jeans</a></li>
-									<li><a href="product.php">Jewellery</a></li>
-								</ul>	
-							</div>							
-						</div>
-						<div class="col1 col5">
-						<img src="images/me1.png" class="img-responsive" alt="">
-						</div>
-						<div class="clearfix"></div>
-					</div>                  
-				</div>				
-			</li>
-			<li><a class="color3" href="product.php">Sale</a></li>
-			<li><a class="color4" href="404.php">About</a></li>
+            <li class="dropdown mega-dropdown">
+                <a href="#" class="color dropdown-toggle" data-toggle="dropdown">Product <span class="caret"></span></a>
+                <ul class="dropdown-menu">
+                    <?php foreach ($navbar_categories as $cat): ?>
+                        <li><a href="product.php?category=<?php echo urlencode($cat); ?>"> <?php echo htmlspecialchars($cat); ?> </a></li>
+                    <?php endforeach; ?>
+                </ul>
+            </li>
+            <li><a class="color4" href="404.php">About</a></li>
             <li><a class="color5" href="typo.php">Short Codes</a></li>
             <li ><a class="color6" href="contact.php">Contact</a></li>
         </ul>
@@ -320,434 +378,59 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
 	</div>
 </div>
 <!--content-->
-		<div class="product"> 
-			<div class="container">
-				<div class="col-md-9">
-					<div class="mid-popular">
-						<div class="col-md-4 item-grid simpleCart_shelfItem">
-						<div class=" mid-pop">
-						<div class="pro-img">
-							<img src="images/pc.jpg" class="img-responsive" alt="">
-							<div class="zoom-icon ">
-							<a class="picture" href="images/pc.jpg" rel="title" class="b-link-stripe b-animate-go  thickbox"><i class="glyphicon glyphicon-search icon "></i></a>
-							<a href="single.php"><i class="glyphicon glyphicon-menu-right icon"></i></a>
-							</div>
-							</div>
-							<div class="mid-1">
-							<div class="women">
-							<div class="women-top">
-								<span>Women</span>
-								<h6><a href="single.php">Sed ut perspiciatis unde</a></h6>
-								</div>
-								<div class="img item_add">
-									<a href="#"><img src="images/ca.png" alt=""></a>
-								</div>
-								<div class="clearfix"></div>
-								</div>
-								<div class="mid-2">
-									<p ><label>$100.00</label><em class="item_price">$70.00</em></p>
-								  <div class="block">
-									<div class="starbox small ghosting"> </div>
-								</div>
-								
-								<div class="clearfix"></div>
-								</div>
-								
-							</div>
-						</div>
-						</div>
-						<div class="col-md-4 item-grid simpleCart_shelfItem">
-						<div class=" mid-pop">
-						<div class="pro-img">
-							<img src="images/pc1.jpg" class="img-responsive" alt="">
-							<div class="zoom-icon ">
-							<a class="picture" href="images/pc1.jpg" rel="title" class="b-link-stripe b-animate-go  thickbox"><i class="glyphicon glyphicon-search icon "></i></a>
-							<a href="single.php"><i class="glyphicon glyphicon-menu-right icon"></i></a>
-							</div>
-							</div>
-							<div class="mid-1">
-							<div class="women">
-							<div class="women-top">
-								<span>Women</span>
-								<h6><a href="single.php">At vero eos</a></h6>
-								</div>
-								<div class="img item_add">
-									<a href="#"><img src="images/ca.png" alt=""></a>
-								</div>
-								<div class="clearfix"></div>
-								</div>
-								<div class="mid-2">
-									<p ><label>$100.00</label><em class="item_price">$70.00</em></p>
-								  <div class="block">
-									<div class="starbox small ghosting"> </div>
-								</div>
-								
-								<div class="clearfix"></div>
-								</div>
-								
-							</div>
-						</div>
-						</div>
-						<div class="col-md-4 item-grid simpleCart_shelfItem">
-						<div class=" mid-pop">
-						<div class="pro-img">
-							<img src="images/pc2.jpg" class="img-responsive" alt="">
-							<div class="zoom-icon ">
-							<a class="picture" href="images/pc2.jpg" rel="title" class="b-link-stripe b-animate-go  thickbox"><i class="glyphicon glyphicon-search icon "></i></a>
-							<a href="single.php"><i class="glyphicon glyphicon-menu-right icon"></i></a>
-							</div>
-							</div>
-							<div class="mid-1">
-							<div class="women">
-							<div class="women-top">
-								<span>Men</span>
-								<h6><a href="single.php">Sed ut perspiciatis unde</a></h6>
-								</div>
-								<div class="img item_add">
-									<a href="#"><img src="images/ca.png" alt=""></a>
-								</div>
-								<div class="clearfix"></div>
-								</div>
-								<div class="mid-2">
-									<p ><label>$100.00</label><em class="item_price">$70.00</em></p>
-								  <div class="block">
-									<div class="starbox small ghosting"> </div>
-								</div>
-								
-								<div class="clearfix"></div>
-								</div>
-								
-							</div>
-						</div>
-						</div>
-						<div class="col-md-4 item-grid simpleCart_shelfItem">
-						<div class=" mid-pop">
-						<div class="pro-img">
-							<img src="images/pc3.jpg" class="img-responsive" alt="">
-							<div class="zoom-icon ">
-							<a class="picture" href="images/pc3.jpg" rel="title" class="b-link-stripe b-animate-go  thickbox"><i class="glyphicon glyphicon-search icon "></i></a>
-							<a href="single.php"><i class="glyphicon glyphicon-menu-right icon"></i></a>
-							</div>
-							</div>
-							<div class="mid-1">
-							<div class="women">
-							<div class="women-top">
-								<span>Women</span>
-								<h6><a href="single.php">On the other</a></h6>
-								</div>
-								<div class="img item_add">
-									<a href="#"><img src="images/ca.png" alt=""></a>
-								</div>
-								<div class="clearfix"></div>
-								</div>
-								<div class="mid-2">
-									<p ><label>$100.00</label><em class="item_price">$70.00</em></p>
-								  <div class="block">
-									<div class="starbox small ghosting"> </div>
-								</div>
-								
-								<div class="clearfix"></div>
-								</div>
-								
-							</div>
-						</div>
-						</div>
-						<div class="col-md-4 item-grid simpleCart_shelfItem">
-						<div class=" mid-pop">
-						<div class="pro-img">
-							<img src="images/pc4.jpg" class="img-responsive" alt="">
-							<div class="zoom-icon ">
-							<a class="picture" href="images/pc4.jpg" rel="title" class="b-link-stripe b-animate-go  thickbox"><i class="glyphicon glyphicon-search icon "></i></a>
-							<a href="single.php"><i class="glyphicon glyphicon-menu-right icon"></i></a>
-							</div>
-							</div>
-							<div class="mid-1">
-							<div class="women">
-							<div class="women-top">
-								<span>Men</span>
-								<h6><a href="single.php">On the other</a></h6>
-								</div>
-								<div class="img item_add">
-									<a href="#"><img src="images/ca.png" alt=""></a>
-								</div>
-								<div class="clearfix"></div>
-								</div>
-								<div class="mid-2">
-									<p ><label>$100.00</label><em class="item_price">$70.00</em></p>
-								  <div class="block">
-									<div class="starbox small ghosting"> </div>
-								</div>
-								
-								<div class="clearfix"></div>
-								</div>
-								
-							</div>
-						</div>
-						</div>
-						<div class="col-md-4 item-grid simpleCart_shelfItem">
-						<div class=" mid-pop">
-						<div class="pro-img">
-							<img src="images/pc5.jpg" class="img-responsive" alt="">
-							<div class="zoom-icon ">
-							<a class="picture" href="images/pc5.jpg" rel="title" class="b-link-stripe b-animate-go  thickbox"><i class="glyphicon glyphicon-search icon "></i></a>
-							<a href="single.php"><i class="glyphicon glyphicon-menu-right icon"></i></a>
-							</div>
-							</div>
-							<div class="mid-1">
-							<div class="women">
-							<div class="women-top">
-								<span>Men</span>
-								<h6><a href="single.php">Sed ut perspiciatis unde</a></h6>
-								</div>
-								<div class="img item_add">
-									<a href="#"><img src="images/ca.png" alt=""></a>
-								</div>
-								<div class="clearfix"></div>
-								</div>
-								<div class="mid-2">
-									<p ><label>$100.00</label><em class="item_price">$70.00</em></p>
-								  <div class="block">
-									<div class="starbox small ghosting"> </div>
-								</div>
-								
-								<div class="clearfix"></div>
-								</div>
-								
-							</div>
-						</div>
-						</div>
-						<div class="col-md-4 item-grid simpleCart_shelfItem">
-						<div class=" mid-pop">
-						<div class="pro-img">
-							<img src="images/pc6.jpg" class="img-responsive" alt="">
-							<div class="zoom-icon ">
-							<a class="picture" href="images/pc6.jpg" rel="title" class="b-link-stripe b-animate-go  thickbox"><i class="glyphicon glyphicon-search icon "></i></a>
-							<a href="single.php"><i class="glyphicon glyphicon-menu-right icon"></i></a>
-							</div>
-							</div>
-							<div class="mid-1">
-							<div class="women">
-							<div class="women-top">
-								<span>Women</span>
-								<h6><a href="single.php">At vero eos</a></h6>
-								</div>
-								<div class="img item_add">
-									<a href="#"><img src="images/ca.png" alt=""></a>
-								</div>
-								<div class="clearfix"></div>
-								</div>
-								<div class="mid-2">
-									<p ><label>$100.00</label><em class="item_price">$70.00</em></p>
-								  <div class="block">
-									<div class="starbox small ghosting"> </div>
-								</div>
-								
-								<div class="clearfix"></div>
-								</div>
-								
-							</div>
-						</div>
-						</div>
-						<div class="col-md-4 item-grid simpleCart_shelfItem">
-						<div class=" mid-pop">
-						<div class="pro-img">
-							<img src="images/pc7.jpg" class="img-responsive" alt="">
-							<div class="zoom-icon ">
-							<a class="picture" href="images/pc7.jpg" rel="title" class="b-link-stripe b-animate-go  thickbox"><i class="glyphicon glyphicon-search icon "></i></a>
-							<a href="single.php"><i class="glyphicon glyphicon-menu-right icon"></i></a>
-							</div>
-							</div>
-							<div class="mid-1">
-							<div class="women">
-							<div class="women-top">
-								<span>Men</span>
-								<h6><a href="single.php">Sed ut perspiciatis unde</a></h6>
-								</div>
-								<div class="img item_add">
-									<a href="#"><img src="images/ca.png" alt=""></a>
-								</div>
-								<div class="clearfix"></div>
-								</div>
-								<div class="mid-2">
-									<p ><label>$100.00</label><em class="item_price">$70.00</em></p>
-								  <div class="block">
-									<div class="starbox small ghosting"> </div>
-								</div>
-								
-								<div class="clearfix"></div>
-								</div>
-								
-							</div>
-						</div>
-						</div>
-						<div class="col-md-4 item-grid simpleCart_shelfItem">
-						<div class=" mid-pop">
-						<div class="pro-img">
-							<img src="images/pc8.jpg" class="img-responsive" alt="">
-							<div class="zoom-icon ">
-							<a class="picture" href="images/pc8.jpg" rel="title" class="b-link-stripe b-animate-go  thickbox"><i class="glyphicon glyphicon-search icon "></i></a>
-							<a href="single.php"><i class="glyphicon glyphicon-menu-right icon"></i></a>
-							</div>
-							</div>
-							<div class="mid-1">
-							<div class="women">
-							<div class="women-top">
-								<span>Men</span>
-								<h6><a href="single.php">On the other</a></h6>
-								</div>
-								<div class="img item_add">
-									<a href="#"><img src="images/ca.png" alt=""></a>
-								</div>
-								<div class="clearfix"></div>
-								</div>
-								<div class="mid-2">
-									<p ><label>$100.00</label><em class="item_price">$70.00</em></p>
-								  <div class="block">
-									<div class="starbox small ghosting"> </div>
-								</div>
-								
-								<div class="clearfix"></div>
-								</div>
-								
-							</div>
-						</div>
-						</div>
-						<div class="clearfix"></div>
-					</div>
-					</div>
-					<div class="col-md-3 product-bottom">
-			<!--categories-->
-			<div class=" rsidebar span_1_of_left">
-					<h3 class="cate">Categories</h3>
-						<ul class="menu-drop">
-					<li class="item1"><a href="#">Men </a>
-						<ul class="cute">
-							<li class="subitem1"><a href="product.php">Cute Kittens </a></li>
-							<li class="subitem2"><a href="product.php">Strange Stuff </a></li>
-							<li class="subitem3"><a href="product.php">Automatic Fails </a></li>
-						</ul>
-					</li>
-					<li class="item2"><a href="#">Women </a>
-						<ul class="cute">
-							<li class="subitem1"><a href="product.php">Cute Kittens </a></li>
-							<li class="subitem2"><a href="product.php">Strange Stuff </a></li>
-							<li class="subitem3"><a href="product.php">Automatic Fails </a></li>
-						</ul>
-					</li>
-					<li class="item3"><a href="#">Kids</a>
-						<ul class="cute">
-							<li class="subitem1"><a href="product.php">Cute Kittens </a></li>
-							<li class="subitem2"><a href="product.php">Strange Stuff </a></li>
-							<li class="subitem3"><a href="product.php">Automatic Fails</a></li>
-						</ul>
-					</li>
-					<li class="item4"><a href="#">Accesories</a>
-						<ul class="cute">
-							<li class="subitem1"><a href="product.php">Cute Kittens </a></li>
-							<li class="subitem2"><a href="product.php">Strange Stuff </a></li>
-							<li class="subitem3"><a href="product.php">Automatic Fails</a></li>
-						</ul>
-					</li>
-					
-					<li class="item4"><a href="#">Shoes</a>
-						<ul class="cute">
-							<li class="subitem1"><a href="product.php">Cute Kittens </a></li>
-							<li class="subitem2"><a href="product.php">Strange Stuff </a></li>
-							<li class="subitem3"><a href="product.php">Automatic Fails </a></li>
-						</ul>
-					</li>
-				</ul>
-					</div>
-				<!--initiate accordion-->
-		<script type="text/javascript">
-			$(function() {
-			    var menu_ul = $('.menu-drop > li > ul'),
-			           menu_a  = $('.menu-drop > li > a');
-			    menu_ul.hide();
-			    menu_a.click(function(e) {
-			        e.preventDefault();
-			        if(!$(this).hasClass('active')) {
-			            menu_a.removeClass('active');
-			            menu_ul.filter(':visible').slideUp('normal');
-			            $(this).addClass('active').next().stop(true,true).slideDown('normal');
-			        } else {
-			            $(this).removeClass('active');
-			            $(this).next().stop(true,true).slideUp('normal');
-			        }
-			    });
-			
-			});
-		</script>
-<!--//menu-->
- <section  class="sky-form">
-					<h4 class="cate">Discounts</h4>
-					 <div class="row row1 scroll-pane">
-						 <div class="col col-4">
-							 <label class="checkbox"><input type="checkbox" name="checkbox" checked=""><i></i>Upto - 10% (20)</label>
-						 </div>
-						 <div class="col col-4">
-							 <label class="checkbox"><input type="checkbox" name="checkbox"><i></i>40% - 50% (5)</label>
-							 <label class="checkbox"><input type="checkbox" name="checkbox"><i></i>30% - 20% (7)</label>
-							 <label class="checkbox"><input type="checkbox" name="checkbox"><i></i>10% - 5% (2)</label>
-							 <label class="checkbox"><input type="checkbox" name="checkbox"><i></i>Other(50)</label>
-						 </div>
-					 </div>
-				 </section> 				 				 
-				 <!---->
-				 <section  class="sky-form">
-					<h4 class="cate">Type</h4>
-						<div class="row row1 scroll-pane">
-							<div class="col col-4">
-								<label class="checkbox"><input type="checkbox" name="checkbox" checked=""><i></i>Sofa Cum Beds (30)</label>
-							</div>
-							<div class="col col-4">
-								<label class="checkbox"><input type="checkbox" name="checkbox"><i></i>Bags  (30)</label>
-								<label class="checkbox"><input type="checkbox" name="checkbox"><i></i>Caps & Hats  (30)</label>
-								<label class="checkbox"><input type="checkbox" name="checkbox"><i></i>Jackets & Coats   (30)</label>
-								<label class="checkbox"><input type="checkbox" name="checkbox"><i></i>Jeans  (30)</label>
-								<label class="checkbox"><input type="checkbox" name="checkbox"><i></i>Shirts   (30)</label>
-								<label class="checkbox"><input type="checkbox" name="checkbox"><i></i>Sunglasses  (30)</label>
-								<label class="checkbox"><input type="checkbox" name="checkbox"><i></i>Swimwear  (30)</label>
-							</div>
-						</div>
-				 </section>
-				 <section class="sky-form">
-					 <h4 class="cate">Brand</h4>
-						<div class="row row1 scroll-pane">
-							<div class="col col-4">
-								<label class="checkbox"><input type="checkbox" name="checkbox" checked=""><i></i>Roadstar</label>
-							</div>
-							<div class="col col-4">
-								<label class="checkbox"><input type="checkbox" name="checkbox"><i></i>Levis</label>
-								<label class="checkbox"><input type="checkbox" name="checkbox"><i></i>Persol</label>
-								<label class="checkbox"><input type="checkbox" name="checkbox"><i></i>Nike</label>
-								<label class="checkbox"><input type="checkbox" name="checkbox"><i></i>Edwin</label>
-								<label class="checkbox"><input type="checkbox" name="checkbox" ><i></i>New Balance</label>
-								<label class="checkbox"><input type="checkbox" name="checkbox"><i></i>Paul Smith</label>
-								<label class="checkbox"><input type="checkbox" name="checkbox"><i></i>Ray-Ban</label>
-							</div>
-						</div>
-				 </section> 				 				 
-				 <!---->
-				 <section class="sky-form">
-						<h4 class="cate">Colours</h4>
-						<div class="row row1 scroll-pane">
-							<div class="col col-4">
-								<label class="checkbox"><input type="checkbox" name="checkbox" checked=""><i></i>Red</label>
-							</div>
-							<div class="col col-4">
-								<label class="checkbox"><input type="checkbox" name="checkbox"><i></i>Green</label>
-								<label class="checkbox"><input type="checkbox" name="checkbox"><i></i>Black</label>
-								<label class="checkbox"><input type="checkbox" name="checkbox"><i></i>Yellow</label>
-								<label class="checkbox"><input type="checkbox" name="checkbox"><i></i>Orange</label>
-								<label class="checkbox"><input type="checkbox" name="checkbox"><i></i>Pink</label>
-							</div>
-						</div>
-				 </section>
-			</div>
-			<div class="clearfix"></div>
-		</div>
-	</div>
+<div class="product-detail">
+    <div class="container">
+        <?php if (isset($_GET['success'])): ?>
+            <div class="alert alert-success">
+                Sản phẩm đã được thêm vào giỏ hàng!
+            </div>
+        <?php endif; ?>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="product-images">
+                    <img src="<?php echo htmlspecialchars($product['image']); ?>" alt="<?php echo htmlspecialchars($product['name']); ?>" class="main-image">
+                    <div class="thumbnail-images">
+                        <img src="<?php echo htmlspecialchars($product['image']); ?>" alt="Thumbnail 1" class="thumbnail">
+                        <img src="<?php echo htmlspecialchars($product['image']); ?>" alt="Thumbnail 2" class="thumbnail">
+                        <img src="<?php echo htmlspecialchars($product['image']); ?>" alt="Thumbnail 3" class="thumbnail">
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="product-info">
+                    <h1 class="product-title"><?php echo htmlspecialchars($product['name']); ?></h1>
+                    <div class="product-category"><?php echo htmlspecialchars($product['category']); ?></div>
+                    <div class="product-price">
+                        <span class="old-price"><?php echo number_format($product['price'] * 1.2, 0); ?>đ</span>
+                        <?php echo number_format($product['price'], 0); ?>đ
+                    </div>
+                    <div class="product-description">
+                        <?php echo nl2br(htmlspecialchars($product['description'] ?? 'Chưa có mô tả sản phẩm')); ?>
+                    </div>
+                    <form method="post">
+                        <div class="quantity-selector">
+                            <button type="button" onclick="decreaseQuantity()">-</button>
+                            <input type="number" name="quantity" id="quantity" value="1" min="1">
+                            <button type="button" onclick="increaseQuantity()">+</button>
+                        </div>
+                        <button type="submit" name="add_to_cart" class="add-to-cart">Thêm vào giỏ hàng</button>
+                    </form>
+                    <div class="product-meta">
+                        <div class="meta-item">
+                            <i class="glyphicon glyphicon-tag"></i>
+                            <span>Mã sản phẩm: <?php echo $product['id']; ?></span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="glyphicon glyphicon-time"></i>
+                            <span>Ngày thêm: <?php echo date('d/m/Y', strtotime($product['created_at'])); ?></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 <!--//content-->
 		<!--//footer-->
 	<div class="footer">
@@ -814,6 +497,19 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
 	<script src="js/simpleCart.min.js"> </script>
 <!-- slide -->
 <script src="js/bootstrap.min.js"></script>
+<script>
+function increaseQuantity() {
+    var input = document.getElementById('quantity');
+    input.value = parseInt(input.value) + 1;
+}
+
+function decreaseQuantity() {
+    var input = document.getElementById('quantity');
+    if (parseInt(input.value) > 1) {
+        input.value = parseInt(input.value) - 1;
+    }
+}
+</script>
  
 </body>
 </html> 
