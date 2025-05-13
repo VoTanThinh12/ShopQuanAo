@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Máy chủ: 127.0.0.1
--- Thời gian đã tạo: Th5 13, 2025 lúc 12:31 PM
+-- Thời gian đã tạo: Th5 13, 2025 lúc 01:19 PM
 -- Phiên bản máy phục vụ: 10.4.32-MariaDB
 -- Phiên bản PHP: 8.2.12
 
@@ -37,6 +37,40 @@ CREATE TABLE `cart` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Đang đổ dữ liệu cho bảng `cart`
+--
+
+INSERT INTO `cart` (`id`, `user_id`, `product_name`, `product_image`, `price`, `quantity`, `created_at`) VALUES
+(32, 1, 'Sed ut perspiciati', 'images/pc.jpg', 70.00, 1, '2025-05-13 11:16:25');
+
+-- --------------------------------------------------------
+
+--
+-- Cấu trúc bảng cho bảng `feedback`
+--
+
+CREATE TABLE `feedback` (
+  `id` int(11) NOT NULL,
+  `user_id` int(10) UNSIGNED NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `email` varchar(100) NOT NULL,
+  `phone` varchar(20) NOT NULL,
+  `message` text NOT NULL,
+  `created_at` datetime NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Đang đổ dữ liệu cho bảng `feedback`
+--
+
+INSERT INTO `feedback` (`id`, `user_id`, `name`, `email`, `phone`, `message`, `created_at`) VALUES
+(1, 1, '1', '', '', 'Shop Uy tín nhất server trái đất\r\n', '2025-05-13 17:38:05'),
+(2, 1, '1', '', '', 'I love you tooo', '2025-05-13 17:43:09'),
+(3, 1, '1', '', '', 'I love you tooo', '2025-05-13 17:44:45'),
+(4, 1, '1', '', '', '1', '2025-05-13 17:44:50'),
+(5, 1, '1', 'thinhverchai@gmail.com', '1', '1', '2025-05-13 17:47:46');
+
 -- --------------------------------------------------------
 
 --
@@ -46,6 +80,11 @@ CREATE TABLE `cart` (
 CREATE TABLE `orders` (
   `id` int(10) UNSIGNED NOT NULL,
   `user_id` int(10) UNSIGNED NOT NULL,
+  `receiver_name` varchar(255) NOT NULL,
+  `receiver_email` varchar(255) NOT NULL,
+  `receiver_phone` varchar(50) NOT NULL,
+  `receiver_address` varchar(255) NOT NULL,
+  `note` text DEFAULT NULL,
   `total_price` decimal(10,2) NOT NULL,
   `payment_status` enum('pending','paid','failed') DEFAULT 'pending',
   `payment_method` varchar(50) NOT NULL,
@@ -56,19 +95,13 @@ CREATE TABLE `orders` (
 -- Đang đổ dữ liệu cho bảng `orders`
 --
 
-INSERT INTO `orders` (`id`, `user_id`, `total_price`, `payment_status`, `payment_method`, `created_at`) VALUES
-(1, 1, 210.00, 'paid', 'Credit Card', '2025-05-12 07:45:31'),
-(2, 1, 210.00, 'paid', 'Credit Card', '2025-05-12 08:07:47'),
-(3, 1, 70.00, 'paid', 'Credit Card', '2025-05-12 08:13:43'),
-(4, 1, 140.00, 'paid', 'Credit Card', '2025-05-12 08:21:49'),
-(5, 1, 0.00, 'paid', 'Credit Card', '2025-05-12 08:24:47'),
-(6, 1, 0.00, 'paid', 'Credit Card', '2025-05-12 08:24:53'),
-(7, 1, 210.00, 'paid', 'Credit Card', '2025-05-12 08:42:09'),
-(8, 1, 140.00, 'paid', 'Credit Card', '2025-05-12 08:42:46'),
-(9, 1, 70.00, 'paid', 'Credit Card', '2025-05-12 08:44:53'),
-(10, 1, 70.00, 'paid', 'Credit Card', '2025-05-12 08:45:18'),
-(11, 1, 70.00, 'paid', 'Credit Card', '2025-05-12 14:39:07'),
-(12, 1, 210.00, 'paid', 'Credit Card', '2025-05-12 14:52:48');
+INSERT INTO `orders` (`id`, `user_id`, `receiver_name`, `receiver_email`, `receiver_phone`, `receiver_address`, `note`, `total_price`, `payment_status`, `payment_method`, `created_at`) VALUES
+(0, 1, '', '', '', '', NULL, 70.00, 'paid', 'cod', '2025-05-13 11:03:37'),
+(0, 1, '', '', '', '', NULL, 0.00, 'paid', 'cod', '2025-05-13 11:04:39'),
+(0, 1, '1', '11@g.com', '123456789', 'Thinh Vo', '', 0.00, 'paid', 'cod', '2025-05-13 11:08:41'),
+(0, 1, '1', '11@g.com', '1', '1', '', 0.00, 'paid', 'COD', '2025-05-13 11:12:33'),
+(0, 1, '1', '11@g.com', '1', '1', '', 0.00, 'paid', 'card', '2025-05-13 11:12:53'),
+(0, 1, '1', '11@g.com', '1', '1', '', 0.00, 'paid', 'COD', '2025-05-13 11:13:25');
 
 -- --------------------------------------------------------
 
@@ -157,9 +190,9 @@ ALTER TABLE `cart`
   ADD KEY `user_id` (`user_id`);
 
 --
--- Chỉ mục cho bảng `orders`
+-- Chỉ mục cho bảng `feedback`
 --
-ALTER TABLE `orders`
+ALTER TABLE `feedback`
   ADD PRIMARY KEY (`id`),
   ADD KEY `user_id` (`user_id`);
 
@@ -184,13 +217,13 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT cho bảng `cart`
 --
 ALTER TABLE `cart`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=33;
 
 --
--- AUTO_INCREMENT cho bảng `orders`
+-- AUTO_INCREMENT cho bảng `feedback`
 --
-ALTER TABLE `orders`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+ALTER TABLE `feedback`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT cho bảng `products`
@@ -215,10 +248,10 @@ ALTER TABLE `cart`
   ADD CONSTRAINT `cart_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
 
 --
--- Các ràng buộc cho bảng `orders`
+-- Các ràng buộc cho bảng `feedback`
 --
-ALTER TABLE `orders`
-  ADD CONSTRAINT `orders_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+ALTER TABLE `feedback`
+  ADD CONSTRAINT `feedback_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
